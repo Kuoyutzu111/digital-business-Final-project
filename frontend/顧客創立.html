@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>顧客創立</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #f9f9f9;
+    }
+
+    .form-container {
+      text-align: center;
+      padding: 20px;
+      background-color: #fff;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      width: 400px;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    label {
+      text-align: left;
+      font-size: 14px;
+      font-weight: bold;
+    }
+
+    input {
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 14px;
+    }
+
+    button {
+      padding: 10px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <div class="form-container">
+    <h1>正隆股份有限公司</h1>
+    <h2>家庭用紙業訂單系統</h2>
+    <form id="customer-form">
+      <label for="customer-id">顧客ID:</label>
+      <input type="text" id="customer-id" required>
+
+      <label for="customer-name">顧客名稱:</label>
+      <input type="text" id="customer-name" required>
+
+      <label for="customer-address">送貨地址:</label>
+      <input type="text" id="customer-address" required>
+
+      <label for="customer-contact">聯絡方式:</label>
+      <input type="text" id="customer-contact" required>
+
+      <button type="submit">送出</button>
+    </form>
+  </div>
+
+  <script>
+    document.getElementById('customer-form').addEventListener('submit', function (event) {
+      event.preventDefault();
+
+      const formData = {
+        customerId: document.getElementById('customer-id').value,
+        customerName: document.getElementById('customer-name').value,
+        customerAddress: document.getElementById('customer-address').value,
+        customerContact: document.getElementById('customer-contact').value
+      };
+
+      console.log('送出的顧客資料:', formData);
+
+      // 將資料送到後端 API
+      fetch('https://example.com/api/customers', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          alert('顧客資料已成功新增！');
+          window.location.href = 'c顧客清單.html'; // 跳轉到顧客清單頁
+        })
+        .catch((error) => {
+          console.error('新增失敗:', error);
+        });
+    });
+  </script>
+</body>
+</html>
