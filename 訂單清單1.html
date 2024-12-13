@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>訂單清單1</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #f9f9f9;
+    }
+
+    .list-container {
+      text-align: center;
+      padding: 20px;
+      background-color: #fff;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      width: 700px;
+    }
+
+    h1, h2 {
+      margin-bottom: 20px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+
+    table, th, td {
+      border: 1px solid #ddd;
+    }
+
+    th, td {
+      padding: 10px;
+      text-align: center;
+    }
+
+    th {
+      background-color: #f1f1f1;
+    }
+
+    tr:hover {
+      background-color: #f9f9f9;
+      cursor: pointer;
+    }
+
+    button {
+      padding: 10px 20px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <div class="list-container">
+    <h1>正隆股份有限公司</h1>
+    <h2>家庭用紙業訂單系統</h2>
+    <table id="order-table">
+      <thead>
+        <tr>
+          <th>訂單日期</th>
+          <th>公司名稱</th>
+          <th>交貨日期</th>
+          <th>狀態</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- 資料將由 JavaScript 動態插入 -->
+      </tbody>
+    </table>
+    <button onclick="goBack()">上一頁</button>
+  </div>
+
+  <script>
+    // 假設這是從資料庫取得的訂單資料
+    const orders = [
+      {
+        id: 1,
+        date: "113/09/20",
+        company: "金融超市中心-文山大樓",
+        deliveryDate: "113/10/10",
+        status: "未完成"
+      },
+      {
+        id: 2,
+        date: "113/09/25",
+        company: "工業區物流-台中分公司",
+        deliveryDate: "113/10/15",
+        status: "已完成"
+      }
+    ];
+
+    // 動態生成表格資料
+    const tableBody = document.getElementById("order-table").querySelector("tbody");
+    orders.forEach(order => {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${order.date}</td>
+        <td>${order.company}</td>
+        <td>${order.deliveryDate}</td>
+        <td>${order.status}</td>
+      `;
+      row.addEventListener("click", () => navigateToDetail(order.id));
+      tableBody.appendChild(row);
+    });
+
+    function navigateToDetail(orderId) {
+      // 將選中的訂單 ID 存入 URL 中，方便在下一頁使用
+      window.location.href = `order-detail.html?orderId=${orderId}`;
+    }
+
+    function goBack() {
+      window.location.href = "訂單資料.html"; // 返回功能選單
+    }
+  </script>
+</body>
+</html>
