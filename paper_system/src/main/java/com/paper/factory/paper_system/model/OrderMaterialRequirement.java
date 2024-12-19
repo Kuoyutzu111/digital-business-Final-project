@@ -25,7 +25,7 @@ public class OrderMaterialRequirement {
     @JoinColumn(name = "Material_ID", nullable = false)
     private Material material;
 
-    @Column(nullable = false, precision = 10, scale = 2)
+    @Column(nullable = false)
     private Double totalRequiredQuantity;
 
     // Getters and Setters

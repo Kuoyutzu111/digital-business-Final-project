@@ -24,7 +24,7 @@ public class RFMAnalysis {
     @Column(nullable = false)
     private Integer frequency;
 
-    @Column(nullable = false, precision = 10, scale = 2)
+    @Column(nullable = false)
     private Double monetaryValue;
 
     @OneToOne

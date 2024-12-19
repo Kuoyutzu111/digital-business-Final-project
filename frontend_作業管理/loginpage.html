@@ -69,18 +69,16 @@
   <div class="login-container">
     <h1>正隆股份有限公司</h1>
     <h2>家庭用紙業訂單系統</h2>
-    <form id="login-form">
-      <label for="employee-id">員工ID:</label>
-      <input type="text" id="employee-id" required>
-
-      <label for="employee-name">員工姓名:</label>
-      <input type="text" id="employee-name" required>
-
+    <form action="/login" method="post">
+      <label for="employee-id">員工帳號:</label>
+      <input type="text" id="username" name="username" required>
+  
       <label for="password">密碼:</label>
-      <input type="password" id="password" required>
-
+      <input type="password" id="password" name="password" required>
+  
       <button type="submit">登入</button>
-    </form>
+  </form>
+  
   </div>
 
   <script>

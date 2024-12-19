@@ -3,12 +3,15 @@ package com.paper.factory.paper_system.service;
 import java.util.Arrays;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.paper.factory.paper_system.model.BOM;
+import com.paper.factory.paper_system.model.Employee;
 import com.paper.factory.paper_system.model.Material;
 import com.paper.factory.paper_system.model.Product;
 import com.paper.factory.paper_system.repository.BOMRepository;
+import com.paper.factory.paper_system.repository.EmployeeRepository;
 import com.paper.factory.paper_system.repository.MaterialRepository;
 import com.paper.factory.paper_system.repository.ProductRepository;
 
@@ -26,8 +29,36 @@ public class DataInitializer {
     @Autowired
     private BOMRepository bomRepository;
 
+    @Autowired
+    private EmployeeRepository employeeRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     @PostConstruct
-    public void init() {
+    public void init_user() {
+        Employee user1 = new Employee(
+            "陳大明", 
+            "M2019001", 
+            passwordEncoder.encode("112233"), 
+            "Marketing", 
+            "文員"
+        );
+
+        Employee user2 = new Employee(
+            "吳小美", 
+            "P2022003", 
+            passwordEncoder.encode("998877"), 
+            "Production", 
+            "主管"
+        );
+
+        employeeRepository.save(user1);
+        employeeRepository.save(user2);
+    }
+
+    @PostConstruct
+    public void init_product() {
         // 初始化原材料
         Material woodPulp = new Material(null, "木漿", 10000, 1000, 2000);
         Material water = new Material(null, "水", 5000, 500, 1000);

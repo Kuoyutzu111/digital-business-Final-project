@@ -25,7 +25,7 @@ public class BOM {
     @JoinColumn(name = "Material_ID", nullable = false)
     private Material material;
 
-    @Column(nullable = false, precision = 10, scale = 2)
+    @Column(nullable = false)
     private Double requiredQuantity; // 每個產品的具體原料需求量（例如 960g 木漿）
 
      // **無參構造函數 (必須存在，JPA 需要)**

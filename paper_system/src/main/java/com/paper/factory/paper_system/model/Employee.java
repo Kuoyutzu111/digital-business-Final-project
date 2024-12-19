@@ -24,6 +24,24 @@ public class Employee {
     @Column(length = 20)
     private String role;
 
+    @Column(nullable = false, unique = true, length = 50)
+    private String username; // 員工的登入帳號（對應前端的員工ID）
+
+    @Column(nullable = false, length = 100)
+    private String password; // 密碼（加密後存儲）
+
+     // **無參構造函數**
+     public Employee() {}
+
+     // **構造函數**
+     public Employee(String name, String username, String password, String department, String role) {
+         this.name = name;
+         this.username = username;
+         this.password = password;
+         this.department = department;
+         this.role = role;
+     }
+
     // Getters and Setters
     public Integer getEId() {
         return eId;
@@ -55,5 +73,21 @@ public class Employee {
 
     public void setRole(String role) {
         this.role = role;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 }
