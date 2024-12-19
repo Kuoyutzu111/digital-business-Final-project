@@ -1,14 +1,14 @@
-package com.paper.factory.paper_system.Controller;
+//package com.paper.factory.paper_system.Controller;
 
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
+//import org.springframework.stereotype.Controller;
+//import org.springframework.web.bind.annotation.GetMapping;
 
-@Controller
-public class LoginController {
+//@Controller
+//public class LoginController {
 
-    @GetMapping("/login")
-    public String loginPage() {
-        return "login";
-    }
-}
+   // @GetMapping("/login")
+   // public String loginPage() {
+    //    return "redirect:/frontend/login.html";
+ //   }
+//}
 

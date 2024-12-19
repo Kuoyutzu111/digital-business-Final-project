@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>loginpage</title>
+  <title>Login</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -69,23 +69,15 @@
   <div class="login-container">
     <h1>正隆股份有限公司</h1>
     <h2>家庭用紙業訂單系統</h2>
-    <form action="/login" method="post">
-      <label for="employee-id">員工帳號:</label>
-      <input type="text" id="username" name="username" required>
-  
-      <label for="password">密碼:</label>
-      <input type="password" id="password" name="password" required>
-  
-      <button type="submit">登入</button>
-  </form>
-  
-  </div>
 
-  <script>
-    document.getElementById("login-form").addEventListener("submit", function (event) {
-      event.preventDefault();
-      window.location.href = "loginpage2.html"; // 跳轉到登入後介面2
-    });
-  </script>
-</body>
-</html>
+    <form id="login-form" action="/login" method="post">
+      <label for="username">員工帳號:</label>
+      <input type="text" id="username" name="username" autocomplete="username" required>
+
+      <label for="password">密碼:</label>
+      <input type="password" id="password" name="password" autocomplete="current-password" required>
+
+      <button type="submit">登入</button>
+    </form>
+    
+    <div id="error

@@ -27,7 +27,7 @@ public class Employee {
     @Column(nullable = false, unique = true, length = 50)
     private String username; // 員工的登入帳號（對應前端的員工ID）
 
-    @Column(nullable = false, length = 100)
+    @Column(nullable = false, length = 8)
     private String password; // 密碼（加密後存儲）
 
      // **無參構造函數**

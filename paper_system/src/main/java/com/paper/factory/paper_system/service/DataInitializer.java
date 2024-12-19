@@ -37,24 +37,34 @@ public class DataInitializer {
 
     @PostConstruct
     public void init_user() {
-        Employee user1 = new Employee(
+        addEmployeeIfNotExist(
             "陳大明", 
             "M2019001", 
-            passwordEncoder.encode("112233"), 
+            "112233", 
             "Marketing", 
             "文員"
         );
 
-        Employee user2 = new Employee(
+        addEmployeeIfNotExist(
             "吳小美", 
             "P2022003", 
-            passwordEncoder.encode("998877"), 
+            "998877", 
             "Production", 
             "主管"
         );
+    }
 
-        employeeRepository.save(user1);
-        employeeRepository.save(user2);
+    private void addEmployeeIfNotExist(String name, String username, String rawPassword, String department, String role) {
+        if (!employeeRepository.existsByUsername(username)) {
+            Employee employee = new Employee(
+                name, 
+                username, 
+                passwordEncoder.encode(rawPassword), 
+                department, 
+                role
+            );
+            employeeRepository.save(employee);
+        }
     }
 
     @PostConstruct
@@ -77,22 +87,21 @@ public class DataInitializer {
 
         // 初始化 BOM
         bomRepository.saveAll(Arrays.asList(
-                new BOM(null, toiletPaper, woodPulp, 960.0),
-                new BOM(null, toiletPaper, water, 120.0),
-                new BOM(null, toiletPaper, softener, 48.0),
+            new BOM(null, toiletPaper, woodPulp, 960.0),
+            new BOM(null, toiletPaper, water, 120.0),
+            new BOM(null, toiletPaper, softener, 48.0),
 
-                new BOM(null, tissue, woodPulp, 3600.0),
-                new BOM(null, tissue, water, 240.0),
-                new BOM(null, tissue, softener, 120.0),
+            new BOM(null, tissue, woodPulp, 3600.0),
+            new BOM(null, tissue, water, 240.0),
+            new BOM(null, tissue, softener, 120.0),
 
-                new BOM(null, kitchenTowel, woodPulp, 2400.0),
-                new BOM(null, kitchenTowel, water, 180.0),
-                new BOM(null, kitchenTowel, absorbent, 120.0),
+            new BOM(null, kitchenTowel, woodPulp, 2400.0),
+            new BOM(null, kitchenTowel, water, 180.0),
+            new BOM(null, kitchenTowel, absorbent, 120.0),
 
-                new BOM(null, handTowel, woodPulp, 3200.0),
-                new BOM(null, handTowel, water, 300.0),
-                new BOM(null, handTowel, absorbent, 100.0)
+            new BOM(null, handTowel, woodPulp, 3200.0),
+            new BOM(null, handTowel, water, 300.0),
+            new BOM(null, handTowel, absorbent, 100.0)
         ));
     }
 }
-
