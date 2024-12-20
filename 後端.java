@@ -2,19 +2,22 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.stereotype.Service;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
 import javax.persistence.*;
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.*;
 
 @SpringBootApplication
-public class DigitalCommerceApplication {
+public class OrderManagementApplication {
     public static void main(String[] args) {
-        SpringApplication.run(DigitalCommerceApplication.class, args);
+        SpringApplication.run(OrderManagementApplication.class, args);
     }
 }
 
-// MODEL LAYER
+// 顧客實體類別
 @Entity
 class Customer {
     @Id
@@ -24,7 +27,7 @@ class Customer {
     private String address;
     private String contact;
 
-    // Getters and setters
+    // Getter 和 Setter
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public String getName() { return name; }
@@ -35,6 +38,7 @@ class Customer {
     public void setContact(String contact) { this.contact = contact; }
 }
 
+// 訂單實體類別
 @Entity
 class Order {
     @Id
@@ -50,7 +54,7 @@ class Order {
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
     private List<OrderItem> items = new ArrayList<>();
 
-    // Getters and setters
+    // Getter 和 Setter
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public LocalDate getOrderDate() { return orderDate; }
@@ -65,6 +69,7 @@ class Order {
     public void setItems(List<OrderItem> items) { this.items = items; }
 }
 
+// 訂單明細實體類別
 @Entity
 class OrderItem {
     @Id
@@ -76,7 +81,7 @@ class OrderItem {
     @ManyToOne
     private Order order;
 
-    // Getters and setters
+    // Getter 和 Setter
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public String getProductId() { return productId; }
@@ -87,15 +92,17 @@ class OrderItem {
     public void setOrder(Order order) { this.order = order; }
 }
 
-// REPOSITORY LAYER
-interface CustomerRepository extends JpaRepository<Customer, Long> {}
-interface OrderRepository extends JpaRepository<Order, Long> {
-    List<Order> findByCustomerId(Long customerId);
-}
+// 顧客資料庫操作接口
+@Repository
+public interface CustomerRepository extends JpaRepository<Customer, Long> {}
 
-// SERVICE LAYER
+// 訂單資料庫操作接口
+@Repository
+public interface OrderRepository extends JpaRepository<Order, Long> {}
+
+// 顧客服務
 @Service
-class CustomerService {
+public class CustomerService {
     @Autowired
     private CustomerRepository customerRepository;
 
@@ -104,7 +111,8 @@ class CustomerService {
     }
 
     public Customer getCustomerById(Long id) {
-        return customerRepository.findById(id).orElseThrow(() -> new RuntimeException("Customer not found"));
+        return customerRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("找不到該顧客！"));
     }
 
     public Customer createCustomer(Customer customer) {
@@ -124,24 +132,22 @@ class CustomerService {
     }
 }
 
+// 訂單服務
 @Service
-class OrderService {
+public class OrderService {
     @Autowired
     private OrderRepository orderRepository;
-    @Autowired
-    private CustomerService customerService;
 
     public List<Order> getAllOrders() {
         return orderRepository.findAll();
     }
 
     public Order getOrderById(Long id) {
-        return orderRepository.findById(id).orElseThrow(() -> new RuntimeException("Order not found"));
+        return orderRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("找不到該訂單！"));
     }
 
     public Order createOrder(Order order) {
-        Customer customer = customerService.getCustomerById(order.getCustomer().getId());
-        order.setCustomer(customer);
         return orderRepository.save(order);
     }
 
@@ -158,10 +164,10 @@ class OrderService {
     }
 }
 
-// CONTROLLER LAYER
+// 顧客控制器
 @RestController
 @RequestMapping("/api/customers")
-class CustomerController {
+public class CustomerController {
     @Autowired
     private CustomerService customerService;
 
@@ -191,9 +197,10 @@ class CustomerController {
     }
 }
 
+// 訂單控制器
 @RestController
 @RequestMapping("/api/orders")
-class OrderController {
+public class OrderController {
     @Autowired
     private OrderService orderService;
 
@@ -222,4 +229,3 @@ class OrderController {
         orderService.deleteOrder(id);
     }
 }
-
