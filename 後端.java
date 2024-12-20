@@ -4,15 +4,13 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.web.bind.annotation.*;
 import javax.persistence.*;
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.LocalDate;
-import java.time.Period;
 import java.util.*;
 
 @SpringBootApplication
-public class OrdersystemBackend {
+public class DigitalCommerceApplication {
     public static void main(String[] args) {
-        SpringApplication.run(OrdersystemBackend.class, args);
+        SpringApplication.run(DigitalCommerceApplication.class, args);
     }
 }
 
@@ -92,8 +90,7 @@ class OrderItem {
 // REPOSITORY LAYER
 interface CustomerRepository extends JpaRepository<Customer, Long> {}
 interface OrderRepository extends JpaRepository<Order, Long> {
-    @Query("SELECT o FROM Order o WHERE o.orderDate BETWEEN :fromDate AND :toDate")
-    List<Order> findOrdersWithinDateRange(@Param("fromDate") LocalDate fromDate, @Param("toDate") LocalDate toDate);
+    List<Order> findByCustomerId(Long customerId);
 }
 
 // SERVICE LAYER
@@ -102,74 +99,63 @@ class CustomerService {
     @Autowired
     private CustomerRepository customerRepository;
 
-    public List<Customer> getAllCustomers() { return customerRepository.findAll(); }
+    public List<Customer> getAllCustomers() {
+        return customerRepository.findAll();
+    }
 
     public Customer getCustomerById(Long id) {
         return customerRepository.findById(id).orElseThrow(() -> new RuntimeException("Customer not found"));
     }
 
-    public Customer createCustomer(Customer customer) { return customerRepository.save(customer); }
+    public Customer createCustomer(Customer customer) {
+        return customerRepository.save(customer);
+    }
+
+    public Customer updateCustomer(Long id, Customer updatedCustomer) {
+        Customer customer = getCustomerById(id);
+        customer.setName(updatedCustomer.getName());
+        customer.setAddress(updatedCustomer.getAddress());
+        customer.setContact(updatedCustomer.getContact());
+        return customerRepository.save(customer);
+    }
+
+    public void deleteCustomer(Long id) {
+        customerRepository.deleteById(id);
+    }
 }
 
 @Service
 class OrderService {
     @Autowired
     private OrderRepository orderRepository;
+    @Autowired
+    private CustomerService customerService;
 
-    public List<Order> getAllOrders() { return orderRepository.findAll(); }
-
-    public Order createOrder(Order order) { return orderRepository.save(order); }
+    public List<Order> getAllOrders() {
+        return orderRepository.findAll();
+    }
 
     public Order getOrderById(Long id) {
         return orderRepository.findById(id).orElseThrow(() -> new RuntimeException("Order not found"));
     }
-}
 
-@Service
-class RFMAnalysisService {
-    @Autowired
-    private OrderRepository orderRepository;
-
-    public List<RFMResult> calculateRFM(LocalDate fromDate, LocalDate toDate) {
-        List<Order> orders = orderRepository.findOrdersWithinDateRange(fromDate, toDate);
-
-        Map<Long, RFMResult> rfmResults = new HashMap<>();
-        for (Order order : orders) {
-            Long customerId = order.getCustomer().getId();
-            RFMResult rfm = rfmResults.getOrDefault(customerId, new RFMResult(customerId));
-
-            rfm.updateRecency(order.getOrderDate());
-            rfm.incrementFrequency();
-            rfm.addMonetary(BigDecimal.valueOf(order.getItems().stream().mapToDouble(item -> item.getQuantity()).sum()));
-
-            rfmResults.put(customerId, rfm);
-        }
-
-        return new ArrayList<>(rfmResults.values());
-    }
-}
-
-class RFMResult {
-    private Long customerId;
-    private int recency = Integer.MAX_VALUE;
-    private int frequency = 0;
-    private BigDecimal monetary = BigDecimal.ZERO;
-
-    public RFMResult(Long customerId) { this.customerId = customerId; }
-
-    public void updateRecency(LocalDate orderDate) {
-        this.recency = Math.min(this.recency, Period.between(orderDate, LocalDate.now()).getDays());
+    public Order createOrder(Order order) {
+        Customer customer = customerService.getCustomerById(order.getCustomer().getId());
+        order.setCustomer(customer);
+        return orderRepository.save(order);
     }
 
-    public void incrementFrequency() { this.frequency++; }
+    public Order updateOrder(Long id, Order updatedOrder) {
+        Order order = getOrderById(id);
+        order.setOrderDate(updatedOrder.getOrderDate());
+        order.setDeliveryDate(updatedOrder.getDeliveryDate());
+        order.setStatus(updatedOrder.getStatus());
+        return orderRepository.save(order);
+    }
 
-    public void addMonetary(BigDecimal amount) { this.monetary = this.monetary.add(amount); }
-
-    // Getters
-    public Long getCustomerId() { return customerId; }
-    public int getRecency() { return recency; }
-    public int getFrequency() { return frequency; }
-    public BigDecimal getMonetary() { return monetary; }
+    public void deleteOrder(Long id) {
+        orderRepository.deleteById(id);
+    }
 }
 
 // CONTROLLER LAYER
@@ -180,13 +166,29 @@ class CustomerController {
     private CustomerService customerService;
 
     @GetMapping
-    public List<Customer> getAllCustomers() { return customerService.getAllCustomers(); }
+    public List<Customer> getAllCustomers() {
+        return customerService.getAllCustomers();
+    }
 
     @GetMapping("/{id}")
-    public Customer getCustomerById(@PathVariable Long id) { return customerService.getCustomerById(id); }
+    public Customer getCustomerById(@PathVariable Long id) {
+        return customerService.getCustomerById(id);
+    }
 
     @PostMapping
-    public Customer createCustomer(@RequestBody Customer customer) { return customerService.createCustomer(customer); }
+    public Customer createCustomer(@RequestBody Customer customer) {
+        return customerService.createCustomer(customer);
+    }
+
+    @PutMapping("/{id}")
+    public Customer updateCustomer(@PathVariable Long id, @RequestBody Customer updatedCustomer) {
+        return customerService.updateCustomer(id, updatedCustomer);
+    }
+
+    @DeleteMapping("/{id}")
+    public void deleteCustomer(@PathVariable Long id) {
+        customerService.deleteCustomer(id);
+    }
 }
 
 @RestController
@@ -196,23 +198,28 @@ class OrderController {
     private OrderService orderService;
 
     @GetMapping
-    public List<Order> getAllOrders() { return orderService.getAllOrders(); }
-
-    @PostMapping
-    public Order createOrder(@RequestBody Order order) { return orderService.createOrder(order); }
+    public List<Order> getAllOrders() {
+        return orderService.getAllOrders();
+    }
 
     @GetMapping("/{id}")
-    public Order getOrderById(@PathVariable Long id) { return orderService.getOrderById(id); }
-}
+    public Order getOrderById(@PathVariable Long id) {
+        return orderService.getOrderById(id);
+    }
 
-@RestController
-@RequestMapping("/api/rfm-analysis")
-class RFMController {
-    @Autowired
-    private RFMAnalysisService rfmAnalysisService;
+    @PostMapping
+    public Order createOrder(@RequestBody Order order) {
+        return orderService.createOrder(order);
+    }
 
-    @GetMapping
-    public List<RFMResult> getRFMAnalysis(@RequestParam LocalDate fromDate, @RequestParam LocalDate toDate) {
-        return rfmAnalysisService.calculateRFM(fromDate, toDate);
+    @PutMapping("/{id}")
+    public Order updateOrder(@PathVariable Long id, @RequestBody Order updatedOrder) {
+        return orderService.updateOrder(id, updatedOrder);
+    }
+
+    @DeleteMapping("/{id}")
+    public void deleteOrder(@PathVariable Long id) {
+        orderService.deleteOrder(id);
     }
 }
+
