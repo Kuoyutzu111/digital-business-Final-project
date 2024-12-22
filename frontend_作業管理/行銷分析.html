@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>行銷圖表分析</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #f9f9f9;
+    }
+
+    .chart-container {
+      text-align: center;
+      padding: 20px;
+      background-color: #fff;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      width: 800px;
+    }
+
+    h1, h2 {
+      margin-bottom: 20px;
+    }
+
+    canvas {
+      max-width: 100%;
+      margin: 20px 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    table, th, td {
+      border: 1px solid #ddd;
+    }
+
+    th, td {
+      padding: 10px;
+      text-align: center;
+    }
+
+    th {
+      background-color: #f1f1f1;
+    }
+
+    button {
+      padding: 10px 20px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <div class="chart-container">
+    <h1>正隆股份有限公司</h1>
+    <h2>家庭用紙業訂單系統</h2>
+    <canvas id="sales-volume-chart"></canvas>
+    <canvas id="growth-rate-chart"></canvas>
+    <table id="sales-data-table">
+      <thead>
+        <tr>
+          <th>季度</th>
+          <th>銷售量 (NTD)</th>
+          <th>銷售成長率 (%)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- 資料將由 JavaScript 動態插入 -->
+      </tbody>
+    </table>
+    <button onclick="goBack()">上一頁</button>
+  </div>
+
+  <script>
+    // 從資料庫取得圖表和表格資料
+    fetch('https://example.com/api/marketing-analysis')
+      .then((response) => response.json())
+      .then((data) => {
+        // 繪製圖表
+        const ctx1 = document.getElementById('sales-volume-chart').getContext('2d');
+        const ctx2 = document.getElementById('growth-rate-chart').getContext('2d');
+
+        new Chart(ctx1, {
+          type: 'line',
+          data: {
+            labels: data.map((item) => item.quarter),
+            datasets: [{
+              label: '季度銷售量 (NTD)',
+              data: data.map((item) => item.salesVolume),
+              borderColor: 'rgba(75, 192, 192, 1)',
+              borderWidth: 2,
+              fill: false
+            }]
+          }
+        });
+
+        new Chart(ctx2, {
+          type: 'line',
+          data: {
+            labels: data.map((item) => item.quarter),
+            datasets: [{
+              label: '季度銷售成長率 (%)',
+              data: data.map((item) => item.growthRate),
+              borderColor: 'rgba(153, 102, 255, 1)',
+              borderWidth: 2,
+              fill: false
+            }]
+          }
+        });
+
+        // 填充表格
+        const tableBody = document.getElementById('sales-data-table').querySelector('tbody');
+        data.forEach((item) => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${item.quarter}</td>
+            <td>${item.salesVolume.toFixed(2)}</td>
+            <td>${item.growthRate.toFixed(2)}%</td>
+          `;
+          tableBody.appendChild(row);
+        });
+      })
+      .catch((error) => {
+        console.error('無法取得行銷圖表資料:', error);
+      });
+
+    function goBack() {
+      window.location.href = '顧客管理1.html'; // 返回上一頁
+    }
+  </script>
+</body>
+</html>

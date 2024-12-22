@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BOM表</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f9f9f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .bom-container {
+            width: 800px;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            text-align: center;
+        }
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 10px;
+            text-align: center;
+        }
+        th {
+            background-color: #f1f1f1;
+        }
+        button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="bom-container">
+        <h1>正隆股份有限公司<br>產品與物料清單</h1>
+        <table id="bom-table">
+            <thead>
+                <tr>
+                    <th>產品名稱</th>
+                    <th>木漿 (g)</th>
+                    <th>水 (g)</th>
+                    <th>柔軟劑 (g)</th>
+                    <th>吸水劑 (g)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- 資料將由JavaScript動態插入 -->
+            </tbody>
+        </table>
+        <button onclick="goBack()">上一頁</button>
+    </div>
+    <script>
+        // 假設 API URL
+        const apiUrl = "https://example.com/api/bom-data";
+
+        // 從 API 獲取數據並動態填充表格
+        fetch(apiUrl)
+            .then(response => response.json())
+            .then(data => {
+                const tableBody = document.getElementById("bom-table").querySelector("tbody");
+                data.forEach(item => {
+                    const row = document.createElement("tr");
+                    row.innerHTML = `
+                        <td>${item.productName}</td>
+                        <td>${item.woodPulp}</td>
+                        <td>${item.water}</td>
+                        <td>${item.softener || "x"}</td>
+                        <td>${item.absorbent || "x"}</td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            })
+            .catch(error => {
+                console.error("無法獲取 BOM 數據:", error);
+                const tableBody = document.getElementById("bom-table").querySelector("tbody");
+                const row = document.createElement("tr");
+                row.innerHTML = `<td colspan="5">無法載入資料</td>`;
+                tableBody.appendChild(row);
+            });
+
+        // 返回上一頁功能
+        function goBack() {
+            window.history.back();
+        }
+    </script>
+</body>
+</html>

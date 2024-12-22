@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>當前存貨管理</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f9f9f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .inventory-container {
+            width: 800px;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            text-align: center;
+        }
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 10px;
+            text-align: center;
+        }
+        th {
+            background-color: #f1f1f1;
+        }
+        button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .home-icon {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            cursor: pointer;
+        }
+        .home-icon img {
+            width: 30px;
+            height: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="inventory-container">
+        <h1>正隆股份有限公司<br>當前存貨管理</h1>
+        <table id="inventory-table">
+            <thead>
+                <tr>
+                    <th>物料名稱</th>
+                    <th>當前庫存量</th>
+                    <th>最小安全庫存量</th>
+                    <th>狀態</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- 資料將由JavaScript動態插入 -->
+            </tbody>
+        </table>
+        <button onclick="goBack()">上一頁</button>
+    </div>
+    <script>
+        // 假設 API URL
+        const apiUrl = "https://example.com/api/inventory-data";
+
+        // 從 API 獲取數據並動態填充表格
+        fetch(apiUrl)
+            .then(response => response.json())
+            .then(data => {
+                const tableBody = document.getElementById("inventory-table").querySelector("tbody");
+                data.forEach(item => {
+                    const status = item.currentStock < item.minStock
+                        ? (item.currentStock === 0 ? "缺貨" : "需補貨")
+                        : "充足";
+                    const row = document.createElement("tr");
+                    row.innerHTML = `
+                        <td>${item.materialName}</td>
+                        <td>${item.currentStock}</td>
+                        <td>${item.minStock}</td>
+                        <td>${status}</td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            })
+            .catch(error => {
+                console.error("無法獲取存貨數據:", error);
+                const tableBody = document.getElementById("inventory-table").querySelector("tbody");
+                const row = document.createElement("tr");
+                row.innerHTML = `<td colspan="4">無法載入資料</td>`;
+                tableBody.appendChild(row);
+            });
+
+        // 返回上一頁功能
+        function goBack() {
+            window.history.back();
+        }
+    </script>
+</body>
+</html>
