@@ -1,5 +1,7 @@
 package com.paper.factory.paper_system.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -19,10 +21,12 @@ public class BOM {
 
     @ManyToOne
     @JoinColumn(name = "Product_ID", nullable = false)
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Product product;
 
     @ManyToOne
     @JoinColumn(name = "Material_ID", nullable = false)
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Material material;
 
     @Column(nullable = false)

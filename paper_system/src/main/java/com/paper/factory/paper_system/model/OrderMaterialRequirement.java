@@ -21,9 +21,8 @@ public class OrderMaterialRequirement {
     @JoinColumn(name = "Order_ID", nullable = false)
     private Order order;
 
-    @ManyToOne
-    @JoinColumn(name = "Material_ID", nullable = false)
-    private Material material;
+    @Column(nullable = false)
+    private Integer materialId;
 
     @Column(nullable = false)
     private Double totalRequiredQuantity;
@@ -45,12 +44,12 @@ public class OrderMaterialRequirement {
         this.order = order;
     }
 
-    public Material getMaterial() {
-        return material;
+    public Integer getMaterialId() {
+        return materialId;
     }
 
-    public void setMaterial(Material material) {
-        this.material = material;
+    public void setMaterialId(Integer materialId) {
+        this.materialId = materialId;
     }
 
     public Double getTotalRequiredQuantity() {
