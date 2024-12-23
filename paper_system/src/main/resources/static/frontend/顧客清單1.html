@@ -10,24 +10,20 @@
       margin: 0;
       padding: 0;
       display: flex;
-      justify-content: center;
+      flex-direction: column;
       align-items: center;
       height: 100vh;
       background-color: #f9f9f9;
     }
 
-    .list-container {
-      text-align: center;
+    .list-container, .form-container {
+      margin: 20px;
       padding: 20px;
       background-color: #fff;
       border: 1px solid #ddd;
       border-radius: 10px;
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-      width: 900px;
-    }
-
-    h1, h2 {
-      margin-bottom: 20px;
+      width: 80%;
     }
 
     table {
@@ -49,75 +45,167 @@
       background-color: #f1f1f1;
     }
 
-    tr:hover {
-      background-color: #f9f9f9;
-      cursor: pointer;
-    }
-
     button {
-      padding: 10px 20px;
+      padding: 8px 16px;
       background-color: #007bff;
       color: white;
       border: none;
       border-radius: 5px;
-      font-size: 14px;
       cursor: pointer;
     }
 
     button:hover {
       background-color: #0056b3;
     }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    input {
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 14px;
+    }
   </style>
 </head>
 <body>
   <div class="list-container">
-    <h1>正隆股份有限公司</h1>
-    <h2>家庭用紙業訂單系統</h2>
+    <h1>顧客清單</h1>
     <table id="customer-table">
       <thead>
         <tr>
           <th>顧客ID</th>
           <th>顧客名稱</th>
-          <th>購買總金額($)</th>
-          <th>購買物品</th>
+          <th>送貨地址</th>
+          <th>聯絡方式</th>
+          <th>操作</th>
         </tr>
       </thead>
       <tbody>
-        <!-- 資料將由 JavaScript 動態插入 -->
+        <!-- 顧客資料將由 JavaScript 動態插入 -->
       </tbody>
     </table>
-    <button onclick="goBack()">上一頁</button>
+    <button onclick="toggleForm('add')">新增顧客</button>
+  </div>
+
+  <div class="form-container" id="customer-form-container" style="display: none;">
+    <h1 id="form-title">新增顧客</h1>
+    <form id="customer-form">
+      <input type="hidden" id="customer-id"> <!-- 隱藏的ID欄位，用於更新 -->
+      <label for="customer-name">顧客名稱:</label>
+      <input type="text" id="customer-name" required>
+
+      <label for="customer-address">送貨地址:</label>
+      <input type="text" id="customer-address" required>
+
+      <label for="customer-contact">聯絡方式:</label>
+      <input type="text" id="customer-contact" required>
+
+      <button type="submit">送出</button>
+      <button type="button" onclick="toggleForm()">取消</button>
+    </form>
   </div>
 
   <script>
-    // 從資料庫取得顧客清單資料
-    fetch('https://example.com/api/customers')
-      .then((response) => response.json())
-      .then((data) => {
-        const tableBody = document.getElementById('customer-table').querySelector('tbody');
-        data.forEach((customer) => {
-          const row = document.createElement('tr');
-          row.innerHTML = `
-            <td>${customer.customerId}</td>
-            <td>${customer.customerName}</td>
-            <td>${customer.totalAmount}</td>
-            <td>${customer.items.join(', ')}</td>
-          `;
-          row.addEventListener('click', () => navigateToDetail(customer.customerId));
-          tableBody.appendChild(row);
-        });
+    const apiUrl = 'http://localhost:8080/api/customers';
+
+    // 切換表單顯示
+    function toggleForm(mode = null, customer = null) {
+      const formContainer = document.getElementById('customer-form-container');
+      const formTitle = document.getElementById('form-title');
+      formContainer.style.display = formContainer.style.display === 'none' ? 'block' : 'none';
+
+      if (mode === 'add') {
+        formTitle.textContent = '新增顧客';
+        document.getElementById('customer-id').value = '';
+        document.getElementById('customer-name').value = '';
+        document.getElementById('customer-address').value = '';
+        document.getElementById('customer-contact').value = '';
+      } else if (mode === 'edit' && customer) {
+        formTitle.textContent = '修改顧客';
+        document.getElementById('customer-id').value = customer.customerId;
+        document.getElementById('customer-name').value = customer.name;
+        document.getElementById('customer-address').value = customer.address;
+        document.getElementById('customer-contact').value = customer.contactInfo;
+      }
+    }
+
+    // 加載顧客清單
+    function loadCustomers() {
+      fetch(apiUrl)
+        .then((response) => response.json())
+        .then((customers) => {
+          const tableBody = document.getElementById('customer-table').querySelector('tbody');
+          tableBody.innerHTML = ''; // 清空表格內容
+          customers.forEach((customer) => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td>${customer.customerId}</td>
+              <td>${customer.name}</td>
+              <td>${customer.address}</td>
+              <td>${customer.contactInfo}</td>
+              <td>
+                <button onclick='editCustomer(${JSON.stringify(customer)})'>修改</button>
+                <button onclick='deleteCustomer(${customer.customerId})'>刪除</button>
+              </td>
+            `;
+            tableBody.appendChild(row);
+          });
+        })
+        .catch((error) => console.error('無法載入顧客資料:', error));
+    }
+
+    // 提交表單
+    document.getElementById('customer-form').addEventListener('submit', function (event) {
+      event.preventDefault();
+
+      const customerId = document.getElementById('customer-id').value;
+      const customerData = {
+        name: document.getElementById('customer-name').value,
+        address: document.getElementById('customer-address').value,
+        contactInfo: document.getElementById('customer-contact').value,
+      };
+
+      const method = customerId ? 'PUT' : 'POST';
+      const url = customerId ? `${apiUrl}/${customerId}` : apiUrl;
+
+      fetch(url, {
+        method: method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(customerData),
       })
-      .catch((error) => {
-        console.error('無法取得顧客資料:', error);
-      });
+        .then((response) => {
+          if (!response.ok) throw new Error('HTTP error ' + response.status);
+          alert(customerId ? '顧客資料已更新！' : '顧客資料已新增！');
+          toggleForm();
+          loadCustomers();
+        })
+        .catch((error) => console.error('提交失敗:', error));
+    });
 
-    function navigateToDetail(customerId) {
-      window.location.href = `customer-detail.html?customerId=${customerId}`; // 跳轉到顧客詳細頁
+    // 修改顧客
+    function editCustomer(customer) {
+      toggleForm('edit', customer);
     }
 
-    function goBack() {
-      window.location.href = '顧客資料.html'; // 返回顧客資料1頁
+    // 刪除顧客
+    function deleteCustomer(customerId) {
+      if (confirm('確定要刪除此顧客嗎？')) {
+        fetch(`${apiUrl}/${customerId}`, { method: 'DELETE' })
+          .then(() => {
+            alert('顧客已刪除');
+            loadCustomers();
+          })
+          .catch((error) => console.error('刪除失敗:', error));
+      }
     }
+
+    // 初始化
+    loadCustomers();
   </script>
 </body>
 </html>
