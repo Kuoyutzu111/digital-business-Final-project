@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>顧客管理1</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #f9f9f9;
+    }
+
+    .customer-container {
+      text-align: center;
+      padding: 20px;
+      background-color: #fff;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      width: 400px;
+    }
+
+    h1, h2 {
+      margin: 0 0 20px;
+      font-weight: normal;
+    }
+
+    .button-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-top: 20px;
+    }
+
+    .button-container button {
+      padding: 15px 20px;
+      background-color: #ccc;
+      color: #333;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .button-container button:hover {
+      background-color: #aaa;
+    }
+
+    .home-button {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      padding: 10px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .home-button:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <div class="customer-container">
+    <h1>正隆股份有限公司</h1>
+    <h2>家庭用紙業訂單系統</h2>
+    <div class="button-container">
+      <button onclick="navigateTo('顧客資料.html')">顧客資料</button>
+      <button onclick="navigateTo('行銷圖表-寫死.html')">行銷圖表分析</button>
+      <button onclick="navigateTo('RFM分析.html')">RFM分析</button>
+    </div>
+    <button class="home-button" onclick="navigateTo('main.html')">回首頁</button>
+  </div>
+
+  <script>
+    function navigateTo(page) {
+      window.location.href = page; // 根據傳入的頁面跳轉
+    }
+  </script>
+</body>
+</html>

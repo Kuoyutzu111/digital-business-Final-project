@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BOM 表</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f9f9f9;
+    }
+
+    .container {
+      width: 90%;
+      margin: 20px auto;
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+      text-align: center;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+
+    table th, table td {
+      border: 1px solid #ddd;
+      padding: 10px;
+      text-align: center;
+    }
+
+    table th {
+      background-color: #007bff;
+      color: white;
+    }
+
+    button {
+      background-color: #007bff;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    input[type="number"] {
+      width: 100px;
+    }
+
+    .back-button {
+      display: inline-block;
+      margin-bottom: 20px;
+      background-color: #28a745;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      text-align: center;
+      font-size: 16px;
+    }
+
+    .back-button:hover {
+      background-color: #218838;
+    }
+
+    /* 根據產品分類設置背景顏色 */
+    .toilet-paper {
+      background-color: #e6e6fa; /* 淡紫色 */
+    }
+
+    .tissue {
+      background-color: #d0f0c0; /* 淡綠色 */
+    }
+
+    .kitchen-towel {
+      background-color: #ffe4b5; /* 淡橙色 */
+    }
+
+    .hand-towel {
+      background-color: #f0e68c; /* 淡黃色 */
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <!-- 返回上一頁的按鈕 -->
+  <button class="back-button" onclick="goBack()">⬅ 返回上一頁</button>
+
+  <h1>BOM 表</h1>
+
+  <table id="bom-table">
+    <thead>
+      <tr>
+        <th>產品名稱</th>
+        <th>原材料名稱</th>
+        <th>所需數量 (g)</th>
+        <th>修改原料數量</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- 數據由 JavaScript 動態加載 -->
+    </tbody>
+  </table>
+</div>
+
+<script>
+  // 返回上一頁
+  function goBack() {
+    window.history.back();
+  }
+
+  // 加載 BOM 表數據
+  function loadBOMTable() {
+    fetch('/api/bom')
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('HTTP status ' + response.status);
+        }
+        return response.json();
+      })
+      .then(data => {
+        if (!Array.isArray(data)) {
+          console.error('Response is not an array:', data);
+          alert('API返回的數據格式錯誤');
+          return;
+        }
+
+        const tableBody = document.querySelector('#bom-table tbody');
+        tableBody.innerHTML = '';
+        data.forEach(bom => {
+          // 根據產品名稱設置行的 CSS 類
+          let productClass = '';
+          switch (bom.product.name) {
+            case '衛生紙':
+              productClass = 'toilet-paper';
+              break;
+            case '面紙':
+              productClass = 'tissue';
+              break;
+            case '廚房紙巾':
+              productClass = 'kitchen-towel';
+              break;
+            case '擦手紙':
+              productClass = 'hand-towel';
+              break;
+          }
+
+          const row = document.createElement('tr');
+          row.className = productClass; // 為行添加對應的 CSS 類
+          row.innerHTML = `
+            <td>${bom.product.name}</td>
+            <td>${bom.material.name}</td>
+            <td>${bom.requiredQuantity}</td>
+            <td>
+              <input type="number" id="new-quantity-${bom.bomId}" placeholder="輸入新數量" />
+              <button onclick="updateBOM(${bom.bomId})">保存</button>
+            </td>
+          `;
+          tableBody.appendChild(row);
+        });
+      })
+      .catch(error => {
+        console.error('Error fetching BOM data:', error);
+        alert('無法加載 BOM 數據');
+      });
+  }
+
+  // 更新 BOM 資料
+  function updateBOM(bomId) {
+    const quantityInput = document.getElementById(`new-quantity-${bomId}`);
+    const newQuantity = quantityInput.value;
+
+    if (!newQuantity || isNaN(newQuantity) || newQuantity <= 0) {
+      alert('請輸入有效的數量！');
+      return;
+    }
+
+    fetch(`/api/bom/${bomId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ requiredQuantity: newQuantity })
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('HTTP status ' + response.status);
+      }
+      return response.json();
+    })
+    .then(data => {
+      alert('BOM 更新成功！');
+      loadBOMTable();
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert('BOM 更新失敗！');
+    });
+  }
+
+  // 頁面加載時自動執行
+  window.onload = loadBOMTable;
+</script>
+
+</body>
+</html>

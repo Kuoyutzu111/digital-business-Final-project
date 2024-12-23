@@ -21,4 +21,11 @@ public class BOMService {
     public BOM saveBOM(BOM bom) {
         return bomRepository.save(bom);
     }
+
+    public BOM updateBOM(Integer bomId, Double newRequiredQuantity) {
+        BOM bom = bomRepository.findById(bomId)
+                .orElseThrow(() -> new RuntimeException("BOM ID: " + bomId + " 不存在"));
+        bom.setRequiredQuantity(newRequiredQuantity);
+        return bomRepository.save(bom);
+    }
 }

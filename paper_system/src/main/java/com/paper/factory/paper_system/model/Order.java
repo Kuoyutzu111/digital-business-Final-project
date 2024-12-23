@@ -7,8 +7,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
@@ -21,13 +19,11 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer orderId;
 
-    @ManyToOne
-    @JoinColumn(name = "Customer_ID", nullable = false)
-    private Customer customer;
+    @Column(nullable = false)
+    private Integer customerId;
 
-    @ManyToOne
-    @JoinColumn(name = "Employee_ID", nullable = false)
-    private Employee employee;
+    @Column(nullable = false)
+    private String employeeId;
 
     @Column(nullable = false)
     @Temporal(TemporalType.DATE)
@@ -49,20 +45,20 @@ public class Order {
         this.orderId = orderId;
     }
 
-    public Customer getCustomer() {
-        return customer;
+    public Integer getCustomerId() {
+        return customerId;
     }
 
-    public void setCustomer(Customer customer) {
-        this.customer = customer;
+    public void setCustomerId(Integer customerId) {
+        this.customerId = customerId;
     }
 
-    public Employee getEmployee() {
-        return employee;
+    public String getEmployeeId() {
+        return employeeId;
     }
 
-    public void setEmployee(Employee employee) {
-        this.employee = employee;
+    public void setEmployeeId(String employeeId) {
+        this.employeeId = employeeId;
     }
 
     public Date getOrderDate() {

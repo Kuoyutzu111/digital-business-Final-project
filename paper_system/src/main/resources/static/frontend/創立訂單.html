@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -42,11 +42,16 @@
       font-weight: bold;
     }
 
-    input {
+    input, select {
       padding: 10px;
       border: 1px solid #ccc;
       border-radius: 5px;
       font-size: 14px;
+    }
+
+    .btn-group {
+      display: flex;
+      justify-content: space-between;
     }
 
     button {
@@ -62,6 +67,34 @@
     button:hover {
       background-color: #0056b3;
     }
+
+    .btn-reset {
+      background-color: #dc3545;
+    }
+
+    .btn-reset:hover {
+      background-color: #c82333;
+    }
+
+    .btn-back {
+      background-color: #6c757d;
+    }
+
+    .btn-back:hover {
+      background-color: #5a6268;
+    }
+
+    .product-group {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding-bottom: 15px;
+    }
+
+    button:disabled {
+      background-color: #cccccc;
+      cursor: not-allowed;
+    }
   </style>
 </head>
 <body>
@@ -71,88 +104,146 @@
       <label for="order-date">訂單日期:</label>
       <input type="date" id="order-date" required>
 
-      <label for="order-id">訂單ID:</label>
-      <input type="text" id="order-id" required>
-
       <label for="customer-id">客戶ID:</label>
-      <input type="text" id="customer-id" required>
+      <input type="text" id="customer-id" placeholder="輸入客戶ID" required>
 
-      <!-- 產品和數量組1 -->
-      <label for="product1">產品ID (1):</label>
-      <input type="text" id="product1">
-
-      <label for="quantity1">訂購數量 (1):</label>
-      <input type="number" id="quantity1" min="1">
-
-      <!-- 產品和數量組2 -->
-      <label for="product2">產品ID (2):</label>
-      <input type="text" id="product2">
-
-      <label for="quantity2">訂購數量 (2):</label>
-      <input type="number" id="quantity2" min="1">
-
-      <!-- 產品和數量組3 -->
-      <label for="product3">產品ID (3):</label>
-      <input type="text" id="product3">
-
-      <label for="quantity3">訂購數量 (3):</label>
-      <input type="number" id="quantity3" min="1">
-
-      <!-- 產品和數量組4 -->
-      <label for="product4">產品ID (4):</label>
-      <input type="text" id="product4">
-
-      <label for="quantity4">訂購數量 (4):</label>
-      <input type="number" id="quantity4" min="1">
-
-      <label for="employee-id">負責員工ID:</label>
-      <input type="text" id="employee-id" required>
+      <label for="customer-name">客戶名稱:</label>
+      <input type="text" id="customer-name" placeholder="輸入客戶名稱" required>
 
       <label for="delivery-date">交貨日期:</label>
       <input type="date" id="delivery-date" required>
 
-      <button type="submit">送出</button>
+      <div id="product-container">
+        <div class="product-group">
+          <label for="product1">選擇產品:</label>
+          <select id="product1" required>
+            <option value="">-- 請選擇產品 --</option>
+            <option value="1">衛生紙 (24包)</option>
+            <option value="2">面紙 (24盒)</option>
+            <option value="3">廚房紙巾 (12卷)</option>
+            <option value="4">擦手紙 (20包)</option>
+          </select>
+
+          <label for="quantity1">訂購數量:</label>
+          <input type="number" id="quantity1" min="1" required>
+        </div>
+      </div>
+
+      <button type="button" id="add-product-btn">新增產品</button>
+
+      <div class="btn-group">
+        <button type="submit">送出</button>
+        <button type="button" id="reset-btn" class="btn-reset">重置</button>
+        <button type="button" id="back-btn" class="btn-back">回到上一頁</button>
+      </div>
     </form>
   </div>
 
   <script>
+    let productCount = 1; // 記錄產品數量的變量
+    const maxProducts = 4; // 產品上限數量
+
+    // 動態新增產品輸入區
+    document.getElementById('add-product-btn').addEventListener('click', function () {
+      if (productCount >= maxProducts) {
+        return; // 超過4個產品後不允許新增
+      }
+      productCount++;
+      const productContainer = document.getElementById('product-container');
+
+      const productGroup = document.createElement('div');
+      productGroup.classList.add('product-group');
+
+      productGroup.innerHTML = `
+        <label for="product${productCount}">選擇產品:</label>
+        <select id="product${productCount}" required>
+          <option value="">-- 請選擇產品 --</option>
+          <option value="1">衛生紙 (24包)</option>
+          <option value="2">面紙 (24盒)</option>
+          <option value="3">廚房紙巾 (12卷)</option>
+          <option value="4">擦手紙 (20包)</option>
+        </select>
+
+        <label for="quantity${productCount}">訂購數量:</label>
+        <input type="number" id="quantity${productCount}" min="1" required>
+      `;
+
+      productContainer.appendChild(productGroup);
+
+      // 如果已達到4個產品，禁用按鈕
+      if (productCount >= maxProducts) {
+        document.getElementById('add-product-btn').disabled = true;
+      }
+    });
+
+    // 提交表單
     document.getElementById('order-form').addEventListener('submit', function (event) {
       event.preventDefault();
 
+      const products = [];
+      for (let i = 1; i <= productCount; i++) {
+        const product = document.getElementById(`product${i}`).value;
+        const quantity = document.getElementById(`quantity${i}`).value;
+        if (product && quantity) {
+          products.push({ productId: product, quantity: quantity });
+        }
+      }
+
       const formData = {
         orderDate: document.getElementById('order-date').value,
-        orderId: document.getElementById('order-id').value,
         customerId: document.getElementById('customer-id').value,
-        product1: document.getElementById('product1').value,
-        quantity1: document.getElementById('quantity1').value,
-        product2: document.getElementById('product2').value,
-        quantity2: document.getElementById('quantity2').value,
-        product3: document.getElementById('product3').value,
-        quantity3: document.getElementById('quantity3').value,
-        product4: document.getElementById('product4').value,
-        quantity4: document.getElementById('quantity4').value,
-        employeeId: document.getElementById('employee-id').value,
+        customerName: document.getElementById('customer-name').value,
         deliveryDate: document.getElementById('delivery-date').value,
+        products: products,
       };
 
       console.log('送出的資料:', formData);
 
-      // 模擬將資料送到伺服器
-      fetch('https://example.com/api/orders', {
+      // 發送 POST 請求
+      fetch('/orders/create', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json'
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(formData)
       })
-        .then((response) => response.json())
-        .then((data) => {
-          alert('訂單已成功提交！');
-          window.location.href = '訂單創立.html'; // 返回訂單創立頁
-        })
-        .catch((error) => {
-          console.error('提交失敗:', error);
-        });
+      .then(response => response.json())
+      .then(data => {
+        alert('訂單創建成功！訂單ID: ' + data.orderId);
+        console.log('回應資料:', data);
+      })
+      .catch(error => {
+        alert('訂單創建失敗，請稍後再試！');
+        console.error('錯誤:', error);
+      });
+    });
+
+    // 重置按鈕
+    document.getElementById('reset-btn').addEventListener('click', function () {
+      document.getElementById('order-form').reset();
+      document.getElementById('product-container').innerHTML = ''; 
+      productCount = 1;
+      document.getElementById('add-product-btn').disabled = false;
+      document.getElementById('product-container').innerHTML = `
+        <div class="product-group">
+          <label for="product1">選擇產品:</label>
+          <select id="product1" required>
+            <option value="">-- 請選擇產品 --</option>
+            <option value="1">衛生紙 (24包)</option>
+            <option value="2">面紙 (24盒)</option>
+            <option value="3">廚房紙巾 (12卷)</option>
+            <option value="4">擦手紙 (20包)</option>
+          </select>
+
+          <label for="quantity1">訂購數量:</label>
+          <input type="number" id="quantity1" min="1" required>
+        </div>
+      `;
+    });
+
+    // 返回按鈕
+    document.getElementById('back-btn').addEventListener('click', function () {
+      window.history.back();
     });
   </script>
 </body>
