@@ -66,11 +66,10 @@
 </head>
 <body>
   <div class="form-container">
-    <h1>正隆股份有限公司</h1>
-    <h2>家庭用紙業訂單系統</h2>
+    <h1>顧客創立</h1>
     <form id="customer-form">
       <label for="customer-id">顧客ID:</label>
-      <input type="text" id="customer-id" required>
+      <input type="number" id="customer-id" required>
 
       <label for="customer-name">顧客名稱:</label>
       <input type="text" id="customer-name" required>
@@ -86,34 +85,41 @@
   </div>
 
   <script>
-    document.getElementById('customer-form').addEventListener('submit', function (event) {
-      event.preventDefault();
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('customer-form').addEventListener('submit', function (event) {
+        event.preventDefault();
 
-      const formData = {
-        customerId: document.getElementById('customer-id').value,
-        customerName: document.getElementById('customer-name').value,
-        customerAddress: document.getElementById('customer-address').value,
-        customerContact: document.getElementById('customer-contact').value
-      };
+        const formData = {
+          customerId: parseInt(document.getElementById('customer-id').value, 10),
+          name: document.getElementById('customer-name').value,
+          address: document.getElementById('customer-address').value,
+          contactInfo: document.getElementById('customer-contact').value
+        };
 
-      console.log('送出的顧客資料:', formData);
+        console.log('送出的顧客資料:', formData);
 
-      // 將資料送到後端 API
-      fetch('https://example.com/api/customers', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          alert('顧客資料已成功新增！');
-          window.location.href = 'c顧客清單.html'; // 跳轉到顧客清單頁
+        fetch('http://localhost:8080/api/customers', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(formData),
         })
-        .catch((error) => {
-          console.error('新增失敗:', error);
-        });
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error('HTTP error ' + response.status);
+            }
+            return response.json();
+          })
+          .then((data) => {
+            alert('顧客資料已成功新增！');
+            window.location.href = '顧客資料.html'; // 跳轉到顧客清單頁
+          })
+          .catch((error) => {
+            console.error('新增失敗:', error);
+            alert('新增失敗，請稍後再試。');
+          });
+      });
     });
   </script>
 </body>

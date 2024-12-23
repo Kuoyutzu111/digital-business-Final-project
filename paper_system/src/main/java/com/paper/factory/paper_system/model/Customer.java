@@ -8,29 +8,29 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "Customer")
+@Table(name = "customer")
 public class Customer {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer customerId;
+    @Column(name = "customer_id", unique = true)
+    private Integer customer_id;
 
     @Column(nullable = false, length = 50)
     private String name;
 
     @Column(nullable = false, length = 100)
-    private String contactInfo;
+    private String contact_info;
 
     @Column(length = 100)
     private String address;
 
     // Getters and Setters
     public Integer getCustomerId() {
-        return customerId;
+        return customer_id;
     }
 
     public void setCustomerId(Integer customerId) {
-        this.customerId = customerId;
+        this.customer_id = customerId;
     }
 
     public String getName() {
@@ -42,11 +42,11 @@ public class Customer {
     }
 
     public String getContactInfo() {
-        return contactInfo;
+        return contact_info;
     }
 
     public void setContactInfo(String contactInfo) {
-        this.contactInfo = contactInfo;
+        this.contact_info = contactInfo;
     }
 
     public String getAddress() {
