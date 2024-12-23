@@ -23,7 +23,7 @@
       border: 1px solid #ddd;
       border-radius: 10px;
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-      width: 700px;
+      width: 900px;
     }
 
     h1, h2 {
@@ -78,6 +78,8 @@
         <tr>
           <th>顧客ID</th>
           <th>顧客名稱</th>
+          <th>購買總金額($)</th>
+          <th>購買物品</th>
         </tr>
       </thead>
       <tbody>
@@ -98,6 +100,8 @@
           row.innerHTML = `
             <td>${customer.customerId}</td>
             <td>${customer.customerName}</td>
+            <td>${customer.totalAmount}</td>
+            <td>${customer.items.join(', ')}</td>
           `;
           row.addEventListener('click', () => navigateToDetail(customer.customerId));
           tableBody.appendChild(row);
