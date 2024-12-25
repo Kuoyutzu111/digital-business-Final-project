@@ -1,29 +1,36 @@
 package com.paper.factory.paper_system.model;
 
 import java.util.Date;
+import java.util.List;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
 
 @Entity
-@Table(name = "`Order`")
+@Table(name = "`order`")
 public class Order {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "order_id")
     private Integer orderId;
 
-    @Column(nullable = false)
-    private Integer customerId;
+    @ManyToOne
+    @JoinColumn(name = "customer_id", referencedColumnName = "customer_id", nullable = false)
+    private Customer customer;
 
     @Column(nullable = false)
-    private String employeeId;
+    private Integer employee;
 
     @Column(nullable = false)
     @Temporal(TemporalType.DATE)
@@ -36,7 +43,14 @@ public class Order {
     @Column(nullable = false, length = 20)
     private String status;
 
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
+    private List<OrderItem> orderItems;
+
     // Getters and Setters
+    public List<OrderItem> getOrderItems() {
+        return orderItems;
+    }
+
     public Integer getOrderId() {
         return orderId;
     }
@@ -45,20 +59,20 @@ public class Order {
         this.orderId = orderId;
     }
 
-    public Integer getCustomerId() {
-        return customerId;
+    public Customer getCustomer() {
+        return customer;
     }
 
-    public void setCustomerId(Integer customerId) {
-        this.customerId = customerId;
+    public void setCustomer(Customer customer) {
+        this.customer = customer;
     }
 
-    public String getEmployeeId() {
-        return employeeId;
+    public Integer getEmployeeId() {
+        return employee;
     }
 
-    public void setEmployeeId(String employeeId) {
-        this.employeeId = employeeId;
+    public void setEmployeeId(Integer employee) {
+        this.employee = employee;
     }
 
     public Date getOrderDate() {

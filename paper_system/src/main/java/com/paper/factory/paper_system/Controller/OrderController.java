@@ -1,9 +1,12 @@
 package com.paper.factory.paper_system.Controller;
+
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -26,5 +29,10 @@ public class OrderController {
         String employeeId = authentication.getName(); // 假设用户名是 Employee_ID
 
         return orderService.createOrder(orderData, employeeId);
+    }
+
+    @GetMapping("/customer-analysis")
+    public List<Map<String, Object>> getCustomerAnalysis() {
+        return orderService.analyzeCustomers();
     }
 }

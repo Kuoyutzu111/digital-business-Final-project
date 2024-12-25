@@ -12,8 +12,9 @@ import jakarta.persistence.Table;
 public class Customer {
 
     @Id
-    @Column(name = "customer_id", unique = true)
-    private Integer customer_id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "customer_id")
+    private Integer customerId;
 
     @Column(nullable = false, length = 50)
     private String name;
@@ -26,11 +27,11 @@ public class Customer {
 
     // Getters and Setters
     public Integer getCustomerId() {
-        return customer_id;
+        return customerId;
     }
 
     public void setCustomerId(Integer customerId) {
-        this.customer_id = customerId;
+        this.customerId = customerId;
     }
 
     public String getName() {
