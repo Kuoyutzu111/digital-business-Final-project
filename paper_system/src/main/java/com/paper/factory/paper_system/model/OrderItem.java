@@ -21,9 +21,8 @@ public class OrderItem {
     @JoinColumn(name = "Order_ID", nullable = false)
     private Order order;
 
-    @ManyToOne
-    @JoinColumn(name = "product_id", nullable = false)
-    private Product product;
+    @Column(nullable = false)
+    private Integer productId;
 
     @Column(nullable = false)
     private Integer quantity;
@@ -45,12 +44,12 @@ public class OrderItem {
         this.order = order;
     }
 
-    public Product getProduct() {
-        return product;
+    public Integer getProductId() {
+        return productId;
     }
 
-    public void setProduct(Product product) {
-        this.product = product;
+    public void setProductId(Integer productId) {
+        this.productId = productId;
     }
 
     public Integer getQuantity() {
@@ -60,4 +59,5 @@ public class OrderItem {
     public void setQuantity(Integer quantity) {
         this.quantity = quantity;
     }
+
 }

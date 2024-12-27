@@ -6,9 +6,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import com.paper.factory.paper_system.model.BOM;
-import com.paper.factory.paper_system.model.Product;
 
 @Repository
 public interface BOMRepository extends JpaRepository<BOM, Integer> {
-    List<BOM> findByProduct(Product product);
+    List<BOM> findByProductProductId(Integer productId);
 }

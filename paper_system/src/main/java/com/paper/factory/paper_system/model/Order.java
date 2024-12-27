@@ -9,28 +9,24 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
 
 @Entity
-@Table(name = "`order`")
+@Table(name = "`Order`")
 public class Order {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "order_id")
     private Integer orderId;
 
-    @ManyToOne
-    @JoinColumn(name = "customer_id", referencedColumnName = "customer_id", nullable = false)
-    private Customer customer;
+    @Column(nullable = false)
+    private Integer customerId;
 
     @Column(nullable = false)
-    private Integer employee;
+    private String employeeId;
 
     @Column(nullable = false)
     @Temporal(TemporalType.DATE)
@@ -43,14 +39,11 @@ public class Order {
     @Column(nullable = false, length = 20)
     private String status;
 
+    //新增 可能會跑error
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
     private List<OrderItem> orderItems;
 
     // Getters and Setters
-    public List<OrderItem> getOrderItems() {
-        return orderItems;
-    }
-
     public Integer getOrderId() {
         return orderId;
     }
@@ -59,20 +52,20 @@ public class Order {
         this.orderId = orderId;
     }
 
-    public Customer getCustomer() {
-        return customer;
+    public Integer getCustomerId() {
+        return customerId;
     }
 
-    public void setCustomer(Customer customer) {
-        this.customer = customer;
+    public void setCustomerId(Integer customerId) {
+        this.customerId = customerId;
     }
 
-    public Integer getEmployeeId() {
-        return employee;
+    public String getEmployeeId() {
+        return employeeId;
     }
 
-    public void setEmployeeId(Integer employee) {
-        this.employee = employee;
+    public void setEmployeeId(String employeeId) {
+        this.employeeId = employeeId;
     }
 
     public Date getOrderDate() {
@@ -97,5 +90,10 @@ public class Order {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    //新增 可能會跑error
+    public List<OrderItem> getOrderItems() {
+        return orderItems;
     }
 }

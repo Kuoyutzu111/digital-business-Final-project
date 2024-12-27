@@ -1,78 +1,82 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>訂單清單1</title>
+  <title>訂單清單_作業管理</title>
   <style>
     body {
       font-family: Arial, sans-serif;
       margin: 0;
       padding: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
       background-color: #f9f9f9;
     }
-
     .list-container {
-      text-align: center;
       padding: 20px;
       background-color: #fff;
-      border: 1px solid #ddd;
+      width: 700px;
+      margin: 20px auto;
       border-radius: 10px;
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-      width: 700px;
     }
-
-    h1, h2 {
-      margin-bottom: 20px;
-    }
-
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-bottom: 20px;
     }
-
     table, th, td {
       border: 1px solid #ddd;
     }
-
     th, td {
       padding: 10px;
       text-align: center;
     }
-
     th {
       background-color: #f1f1f1;
     }
-
     tr:hover {
       background-color: #f9f9f9;
-      cursor: pointer;
     }
-
     button {
-      padding: 10px 20px;
-      background-color: #007bff;
-      color: white;
+      padding: 10px;
       border: none;
       border-radius: 5px;
-      font-size: 14px;
+      background-color: #007bff;
+      color: white;
       cursor: pointer;
     }
-
     button:hover {
       background-color: #0056b3;
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      width: 400px;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+    }
+    .modal.active {
+      display: block;
+    }
+    .modal-header {
+      font-size: 18px;
+      margin-bottom: 10px;
+    }
+    .modal table {
+      margin-bottom: 10px;
+    }
+    .modal-footer {
+      text-align: right;
     }
   </style>
 </head>
 <body>
   <div class="list-container">
-    <h1>正隆股份有限公司</h1>
-    <h2>家庭用紙業訂單系統</h2>
+    <h1>訂單系統</h1>
     <table id="order-table">
       <thead>
         <tr>
@@ -83,52 +87,100 @@
         </tr>
       </thead>
       <tbody>
-        <!-- 資料將由 JavaScript 動態插入 -->
+        <!-- 動態生成 -->
       </tbody>
     </table>
-    <button onclick="goBack()">上一頁</button>
+  </div>
+
+  <!-- 彈窗結構 -->
+  <div id="order-modal" class="modal">
+    <div class="modal-header">訂單詳情</div>
+    <div class="modal-body">
+      <p id="order-date"></p>
+      <p id="delivery-date"></p>
+      <table id="order-items">
+        <thead>
+          <tr>
+            <th>產品名稱</th>
+            <th>數量</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- 動態生成 -->
+        </tbody>
+      </table>
+    </div>
+    <div class="modal-footer">
+      <button id="close-modal">關閉</button>
+    </div>
   </div>
 
   <script>
-    // 假設這是從資料庫取得的訂單資料
-    const orders = [
-      {
-        id: 1,
-        date: "113/09/20",
-        company: "金融超市中心-文山大樓",
-        deliveryDate: "113/10/10",
-        status: "未完成"
-      },
-      {
-        id: 2,
-        date: "113/09/25",
-        company: "工業區物流-台中分公司",
-        deliveryDate: "113/10/15",
-        status: "已完成"
-      }
-    ];
+    // 加載訂單資料
+    fetch('/orders')
+      .then(response => response.json())
+      .then(data => {
+        const tableBody = document.getElementById('order-table').querySelector('tbody');
+        data.forEach(order => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${order.orderDate}</td>
+            <td>${order.customerName}</td>
+            <td>${order.deliveryDate}</td>
+            <td>${order.status}</td>
+          `;
+          row.addEventListener('click', () => openOrderDetails(order.orderId));
+          tableBody.appendChild(row);
+        });
+      })
+      .catch(error => console.error('加載訂單失敗', error));
 
-    // 動態生成表格資料
-    const tableBody = document.getElementById("order-table").querySelector("tbody");
-    orders.forEach(order => {
-      const row = document.createElement("tr");
-      row.innerHTML = `
-        <td>${order.date}</td>
-        <td>${order.company}</td>
-        <td>${order.deliveryDate}</td>
-        <td>${order.status}</td>
-      `;
-      row.addEventListener("click", () => navigateToDetail(order.id));
-      tableBody.appendChild(row);
-    });
+    // 打開詳情彈窗
+    function openOrderDetails(orderId) {
+      fetch(`/orders/${orderId}/details`)
+        .then(response => response.json())
+        .then(data => {
+          const modal = document.getElementById('order-modal');
+          modal.classList.add('active');
 
-    function navigateToDetail(orderId) {
-      // 將選中的訂單 ID 存入 URL 中，方便在下一頁使用
-      window.location.href = `order-detail.html?orderId=${orderId}`;
+          document.getElementById('order-date').innerText = `訂單日期: ${data.orderDate}`;
+          document.getElementById('delivery-date').innerText = `交貨日期: ${data.deliveryDate}`;
+
+          const tableBody = document.getElementById('order-items').querySelector('tbody');
+          tableBody.innerHTML = ''; // 清空現有內容
+          data.items.forEach(item => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td>${item.productName}</td>
+              <td><input type="number" value="${item.quantity}" /></td>
+              <td><button onclick="updateQuantity(${orderId}, ${item.productId})">更新</button></td>
+            `;
+            tableBody.appendChild(row);
+          });
+        })
+        .catch(error => console.error('加載訂單詳情失敗', error));
     }
 
-    function goBack() {
-      window.location.href = "訂單資料.html"; // 返回功能選單
+    // 關閉彈窗
+    document.getElementById('close-modal').addEventListener('click', () => {
+      const modal = document.getElementById('order-modal');
+      modal.classList.remove('active');
+    });
+
+    // 更新數量
+    function updateQuantity(orderId, productId) {
+      const input = document.querySelector(`#order-items [value="${productId}"]`).value;
+      fetch(`/orders/${orderId}/items/${productId}/update`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ quantity: parseInt(input, 10) })
+      })
+        .then(response => {
+          if (!response.ok) throw new Error('更新失敗');
+          alert('更新成功');
+        })
+        .catch(error => console.error('更新失敗', error));
     }
   </script>
 </body>

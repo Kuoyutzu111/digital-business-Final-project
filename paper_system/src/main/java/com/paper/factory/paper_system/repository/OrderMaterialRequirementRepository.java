@@ -12,4 +12,3 @@ public interface OrderMaterialRequirementRepository extends JpaRepository<OrderM
     Optional<OrderMaterialRequirement> findByOrderOrderIdAndMaterialId(Integer orderId, Integer materialId);
 }
 
-

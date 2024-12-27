@@ -36,4 +36,3 @@ public class BOMController {
         return bomService.updateBOM(bomId, bom.getRequiredQuantity());
     }
 }
-
