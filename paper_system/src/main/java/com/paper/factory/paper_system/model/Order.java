@@ -9,6 +9,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
@@ -22,8 +24,9 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer orderId;
 
-    @Column(nullable = false)
-    private Integer customerId;
+    @ManyToOne
+    @JoinColumn(name = "customer_id", referencedColumnName = "customer_id")
+    private Customer customer;
 
     @Column(nullable = false)
     private String employeeId;
@@ -39,7 +42,7 @@ public class Order {
     @Column(nullable = false, length = 20)
     private String status;
 
-    //新增 可能會跑error
+    // 新增 可能會跑error
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
     private List<OrderItem> orderItems;
 
@@ -52,12 +55,20 @@ public class Order {
         this.orderId = orderId;
     }
 
-    public Integer getCustomerId() {
-        return customerId;
+    public String getCustomerId() {
+        // 從關聯的 customer 對象中獲取 customerId
+        return customer != null ? customer.getCustomerId() : null;
     }
 
-    public void setCustomerId(Integer customerId) {
-        this.customerId = customerId;
+    public void setCustomerId(String customerId) {
+        if (customer == null) {
+            customer = new Customer();
+        }
+        customer.setCustomerId(customerId); // 設置關聯對象的 ID
+    }
+
+    public Customer getCustomer() {
+        return customer;
     }
 
     public String getEmployeeId() {
@@ -92,7 +103,7 @@ public class Order {
         this.status = status;
     }
 
-    //新增 可能會跑error
+    // 新增 可能會跑error
     public List<OrderItem> getOrderItems() {
         return orderItems;
     }

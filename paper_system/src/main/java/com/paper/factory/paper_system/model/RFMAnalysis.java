@@ -15,8 +15,7 @@ import jakarta.persistence.Table;
 public class RFMAnalysis {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer customerId;
+    private String customerId;
 
     @Column(nullable = false)
     private Integer recency;
@@ -27,17 +26,23 @@ public class RFMAnalysis {
     @Column(nullable = false)
     private Double monetaryValue;
 
+    @Column(nullable = false)
+    private Double rfmValue; // 新增字段
+
+    @Column(nullable = false)
+    private String segment; // 新增字段
+
     @OneToOne
     @MapsId
     @JoinColumn(name = "Customer_ID")
     private Customer customer;
 
     // Getters and Setters
-    public Integer getCustomerId() {
+    public String getCustomerId() {
         return customerId;
     }
 
-    public void setCustomerId(Integer customerId) {
+    public void setCustomerId(String customerId) {
         this.customerId = customerId;
     }
 
@@ -71,5 +76,21 @@ public class RFMAnalysis {
 
     public void setCustomer(Customer customer) {
         this.customer = customer;
+    }
+
+    public Double getRfmValue() {
+        return rfmValue;
+    }
+
+    public void setRfmValue(Double rfmValue) {
+        this.rfmValue = rfmValue;
+    }
+
+    public String getSegment() {
+        return segment;
+    }
+
+    public void setSegment(String segment) {
+        this.segment = segment;
     }
 }

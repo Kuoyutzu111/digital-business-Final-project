@@ -17,11 +17,13 @@ import com.paper.factory.paper_system.model.Customer;
 import com.paper.factory.paper_system.model.Order;
 import com.paper.factory.paper_system.model.OrderItem;
 import com.paper.factory.paper_system.model.OrderMaterialRequirement;
+import com.paper.factory.paper_system.model.Product;
 import com.paper.factory.paper_system.repository.BOMRepository;
 import com.paper.factory.paper_system.repository.CustomerRepository;
 import com.paper.factory.paper_system.repository.OrderItemRepository;
 import com.paper.factory.paper_system.repository.OrderMaterialRequirementRepository;
 import com.paper.factory.paper_system.repository.OrderRepository;
+import com.paper.factory.paper_system.repository.ProductRepository;
 
 import jakarta.transaction.Transactional;
 
@@ -43,84 +45,87 @@ public class OrderService {
     @Autowired
     private CustomerRepository customerRepository;
 
+    @Autowired
+    private ProductRepository productRepository;
+
     @Transactional
-public Order createOrder(Map<String, Object> orderData, String employeeId) {
-    // 创建订单
-    Order order = new Order();
-    order.setOrderDate(java.sql.Date.valueOf((String) orderData.get("orderDate")));
-    order.setDeliveryDate(java.sql.Date.valueOf((String) orderData.get("deliveryDate")));
-    order.setStatus("未開始");
-    order.setCustomerId(Integer.parseInt((String) orderData.get("customerId")));
-    order.setEmployeeId(employeeId);
+    public Order createOrder(Map<String, Object> orderData, String employeeId) {
+        // 创建订单
+        Order order = new Order();
+        order.setOrderDate(java.sql.Date.valueOf((String) orderData.get("orderDate")));
+        order.setDeliveryDate(java.sql.Date.valueOf((String) orderData.get("deliveryDate")));
+        order.setStatus("未開始");
+        order.setCustomerId((String) orderData.get("customerId"));
+        order.setEmployeeId(employeeId);
 
-    // 保存订单
-    Order savedOrder = orderRepository.save(order);
-    if (savedOrder.getOrderId() == null) {
-        throw new IllegalStateException("Order 保存失败，未生成主键 ID");
-    }
-    System.out.println("保存的 Order: " + savedOrder);
+        // 保存订单
+        Order savedOrder = orderRepository.save(order);
+        if (savedOrder.getOrderId() == null) {
+            throw new IllegalStateException("Order 保存失败，未生成主键 ID");
+        }
+        System.out.println("保存的 Order: " + savedOrder);
 
-    // 处理订单项
-    List<Map<String, Object>> products = (List<Map<String, Object>>) orderData.get("products");
-    List<OrderItem> orderItems = new ArrayList<>();
-    for (Map<String, Object> productData : products) {
-        OrderItem orderItem = new OrderItem();
-        orderItem.setOrder(savedOrder); // 设置正确的 Order
-        orderItem.setProductId(Integer.parseInt((String) productData.get("productId")));
-        orderItem.setQuantity(Integer.parseInt((String) productData.get("quantity")));
-        orderItems.add(orderItem);
-    }
-    orderItemRepository.saveAll(orderItems);
+        // 处理订单项
+        List<Map<String, Object>> products = (List<Map<String, Object>>) orderData.get("products");
+        List<OrderItem> orderItems = new ArrayList<>();
+        for (Map<String, Object> productData : products) {
+            OrderItem orderItem = new OrderItem();
+            orderItem.setOrder(savedOrder); // 设置正确的 Order
+            orderItem.setProductId(Integer.parseInt((String) productData.get("productId")));
+            orderItem.setQuantity(Integer.parseInt((String) productData.get("quantity")));
+            orderItems.add(orderItem);
+        }
+        orderItemRepository.saveAll(orderItems);
 
-    // 调用方法计算并保存原材料需求
-    calculateAndSaveMaterialRequirements(savedOrder, orderItems);
+        // 调用方法计算并保存原材料需求
+        calculateAndSaveMaterialRequirements(savedOrder, orderItems);
 
-    return savedOrder;
-}
-
-
-private void calculateAndSaveMaterialRequirements(Order order, List<OrderItem> orderItems) {
-    if (order.getOrderId() == null) {
-        throw new IllegalArgumentException("Order 尚未保存，无法计算原材料需求！");
+        return savedOrder;
     }
 
-    List<OrderMaterialRequirement> materialRequirements = new ArrayList<>();
-    for (OrderItem item : orderItems) {
-        Integer productId = item.getProductId();
-        Integer quantity = item.getQuantity();
+    private void calculateAndSaveMaterialRequirements(Order order, List<OrderItem> orderItems) {
+        if (order.getOrderId() == null) {
+            throw new IllegalArgumentException("Order 尚未保存，无法计算原材料需求！");
+        }
 
-        // 获取 BOM 列表
-        List<BOM> boms = bomRepository.findByProductProductId(productId);
+        List<OrderMaterialRequirement> materialRequirements = new ArrayList<>();
+        for (OrderItem item : orderItems) {
+            Integer productId = item.getProductId();
+            Integer quantity = item.getQuantity();
 
-        for (BOM bom : boms) {
-            Integer materialId = bom.getMaterial().getMaterialId();
-            Double requiredQuantity = bom.getRequiredQuantity();
-            Double totalRequiredQuantity = requiredQuantity * quantity;
+            // 获取 BOM 列表
+            List<BOM> boms = bomRepository.findByProductProductId(productId);
 
-            // 检查是否已经存在
-            Optional<OrderMaterialRequirement> existingRequirement = orderMaterialRequirementRepository
-                    .findByOrderOrderIdAndMaterialId(order.getOrderId(), materialId);
+            for (BOM bom : boms) {
+                Integer materialId = bom.getMaterial().getMaterialId();
+                Double requiredQuantity = bom.getRequiredQuantity();
+                Double totalRequiredQuantity = requiredQuantity * quantity;
 
-            if (existingRequirement.isPresent()) {
-                OrderMaterialRequirement requirement = existingRequirement.get();
-                requirement.setTotalRequiredQuantity(requirement.getTotalRequiredQuantity() + totalRequiredQuantity);
-                orderMaterialRequirementRepository.save(requirement);
-            } else {
-                OrderMaterialRequirement requirement = new OrderMaterialRequirement();
-                requirement.setOrder(order); // 確保此處傳入的是持久化的 Order
-                requirement.setMaterialId(materialId);
-                requirement.setTotalRequiredQuantity(totalRequiredQuantity);
-                materialRequirements.add(requirement);
+                // 检查是否已经存在
+                Optional<OrderMaterialRequirement> existingRequirement = orderMaterialRequirementRepository
+                        .findByOrderOrderIdAndMaterialId(order.getOrderId(), materialId);
+
+                if (existingRequirement.isPresent()) {
+                    OrderMaterialRequirement requirement = existingRequirement.get();
+                    requirement
+                            .setTotalRequiredQuantity(requirement.getTotalRequiredQuantity() + totalRequiredQuantity);
+                    orderMaterialRequirementRepository.save(requirement);
+                } else {
+                    OrderMaterialRequirement requirement = new OrderMaterialRequirement();
+                    requirement.setOrder(order); // 確保此處傳入的是持久化的 Order
+                    requirement.setMaterialId(materialId);
+                    requirement.setTotalRequiredQuantity(totalRequiredQuantity);
+                    materialRequirements.add(requirement);
+                }
             }
         }
+
+        // 保存所有计算的需求
+        orderMaterialRequirementRepository.saveAll(materialRequirements);
+        System.out.println("保存的 OrderMaterialRequirements: " + materialRequirements);
     }
 
-    // 保存所有计算的需求
-    orderMaterialRequirementRepository.saveAll(materialRequirements);
-    System.out.println("保存的 OrderMaterialRequirements: " + materialRequirements);
-}
-
-public List<Map<String, Object>> analyzeCustomers() {
+    public List<Map<String, Object>> analyzeCustomers() {
         List<Customer> customers = customerRepository.findAll();
         List<Map<String, Object>> analysisResults = new ArrayList<>();
         for (Customer customer : customers) {
@@ -148,12 +153,27 @@ public List<Map<String, Object>> analyzeCustomers() {
         }
         return analysisResults;
     }
+
     private double calculateOrderTotal(Order order) {
-        // 假設每個 Order 包含 OrderItems，計算訂單總金額
         return order.getOrderItems().stream()
-                .mapToDouble(item -> item.getProduct().getUnitPrice() * item.getQuantity())
-                .sum();
+                .mapToDouble(item -> {
+                    // 根據 productId 查詢 Product
+                    Product product = productRepository.findById(item.getProductId())
+                            .orElseThrow(() -> new IllegalArgumentException(
+                                    "Product not found with ID: " + item.getProductId()));
+
+                    // 確保 unitPrice 不為空，否則拋出異常
+                    if (product.getUnitPrice() == null) {
+                        throw new IllegalArgumentException(
+                                "Product unit price is null for product ID: " + item.getProductId());
+                    }
+
+                    // 計算該商品的總價
+                    return product.getUnitPrice() * item.getQuantity();
+                })
+                .sum(); // 將所有商品的總價加總
     }
+
     private double calculateActivityProbability(List<Order> orders) {
         // 假設活動定義為最近 30 天內下過訂單
         long activeOrders = orders.stream()
@@ -161,6 +181,5 @@ public List<Map<String, Object>> analyzeCustomers() {
                 .count();
         return orders.isEmpty() ? 0 : (double) activeOrders / orders.size() * 100;
     }
-
 
 }

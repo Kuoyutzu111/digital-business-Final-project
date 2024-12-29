@@ -69,7 +69,7 @@
     <h1>顧客創立</h1>
     <form id="customer-form">
       <label for="customer-id">顧客ID:</label>
-      <input type="number" id="customer-id" required>
+      <input type="text" id="customer-id" required>
 
       <label for="customer-name">顧客名稱:</label>
       <input type="text" id="customer-name" required>
@@ -90,12 +90,11 @@
         event.preventDefault();
 
         const formData = {
-          customerId: parseInt(document.getElementById('customer-id').value, 10),
+          customerId: document.getElementById('customer-id').value,
           name: document.getElementById('customer-name').value,
-          address: document.getElementById('customer-address').value,
-          contactInfo: document.getElementById('customer-contact').value
-        };
-
+        address: document.getElementById('customer-address').value,
+        contactInfo: document.getElementById('customer-contact').value
+};
         console.log('送出的顧客資料:', formData);
 
         fetch('http://localhost:8080/api/customers', {

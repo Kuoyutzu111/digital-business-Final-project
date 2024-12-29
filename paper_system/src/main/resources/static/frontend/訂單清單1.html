@@ -118,7 +118,7 @@
 
   <script>
     // 加載訂單資料
-    fetch('/orders')
+    fetch('htp://localhost:8080/api/orders')
       .then(response => response.json())
       .then(data => {
         const tableBody = document.getElementById('order-table').querySelector('tbody');

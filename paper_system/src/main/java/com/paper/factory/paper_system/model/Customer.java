@@ -1,24 +1,26 @@
 package com.paper.factory.paper_system.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "Customer")
+@JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
 public class Customer {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "customer_id")
-    private Integer customerId;
+    @Column(name = "Customer_ID", columnDefinition = "VARCHAR(20)")
+    private String customerId; // 修改為 String 型別
 
     @Column(nullable = false, length = 50)
     private String name;
 
+    @JsonProperty("contactInfo")
     @Column(nullable = false, length = 100)
     private String contact_info;
 
@@ -26,11 +28,11 @@ public class Customer {
     private String address;
 
     // Getters and Setters
-    public Integer getCustomerId() {
+    public String getCustomerId() {
         return customerId;
     }
 
-    public void setCustomerId(Integer customerId) {
+    public void setCustomerId(String customerId) {
         this.customerId = customerId;
     }
 

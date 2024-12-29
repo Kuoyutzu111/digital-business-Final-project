@@ -60,4 +60,9 @@ public class OrderItem {
         this.quantity = quantity;
     }
 
+    public Integer getPrice() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getPrice'");
+    }
+
 }

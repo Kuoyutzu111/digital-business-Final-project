@@ -200,7 +200,7 @@
       console.log('送出的資料:', formData);
 
       // 發送 POST 請求
-      fetch('/orders/create', {
+      fetch('http://localhost:8080/api/orders/create', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

@@ -71,7 +71,7 @@
     <table id="rfm-data-table">
       <thead>
         <tr>
-          <th>公司ID</th>
+          <th>顧客ID</th>
           <th>Recency (R)</th>
           <th>Frequency (F)</th>
           <th>Monetary (M)</th>
@@ -88,7 +88,7 @@
 
   <script>
     // 從資料庫取得 RFM 分析資料
-    fetch('https://example.com/api/rfm-analysis')
+    fetch('/api/rfm-analysis')
       .then((response) => response.json())
       .then((data) => {
         const tableBody = document.getElementById('rfm-data-table').querySelector('tbody');
@@ -98,7 +98,7 @@
             <td>${item.customerId}</td>
             <td>${item.recency}</td>
             <td>${item.frequency}</td>
-            <td>${item.monetary.toFixed(2)}</td>
+            <td>${item.monetaryValue.toFixed(2)}</td>
             <td>${item.rfmValue.toFixed(2)}</td>
             <td>${item.segment}</td>
           `;

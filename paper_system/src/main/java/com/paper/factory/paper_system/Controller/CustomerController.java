@@ -1,8 +1,11 @@
 package com.paper.factory.paper_system.Controller;
 
 import com.paper.factory.paper_system.model.Customer;
+import com.paper.factory.paper_system.repository.CustomerRepository;
 import com.paper.factory.paper_system.service.CustomerService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
@@ -15,9 +18,18 @@ public class CustomerController {
     @Autowired
     private CustomerService customerService;
 
+    @Autowired
+    private CustomerRepository customerRepository;
+
     @PostMapping
-    public Customer createCustomer(@RequestBody Customer customer) {
-        return customerService.saveCustomer(customer);
+    public ResponseEntity<Customer> createCustomer(@RequestBody Customer customer) {
+        Customer savedCustomer = customerService.saveCustomer(customer);
+
+        if (savedCustomer == null) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+
+        return ResponseEntity.ok(savedCustomer);
     }
 
     // 新增：获取所有客户
@@ -28,19 +40,19 @@ public class CustomerController {
 
     // 新增：根据 ID 获取客户
     @GetMapping("/{customerId}")
-    public Customer getCustomerById(@PathVariable Integer customerId) {
+    public Customer getCustomerById(@PathVariable String customerId) {
         return customerService.getCustomerById(customerId);
     }
 
     // 新增：更新客户
     @PutMapping("/{customerId}")
-    public Customer updateCustomer(@PathVariable Integer customerId, @RequestBody Customer updatedCustomer) {
+    public Customer updateCustomer(@PathVariable String customerId, @RequestBody Customer updatedCustomer) {
         return customerService.updateCustomer(customerId, updatedCustomer);
     }
 
     // 新增：删除客户
     @DeleteMapping("/{customerId}")
-    public void deleteCustomer(@PathVariable Integer customerId) {
+    public void deleteCustomer(@PathVariable String customerId) {
         customerService.deleteCustomer(customerId);
     }
 

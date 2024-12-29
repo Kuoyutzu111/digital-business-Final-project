@@ -6,6 +6,5 @@ import org.springframework.stereotype.Repository;
 import com.paper.factory.paper_system.model.RFMAnalysis;
 
 @Repository
-public interface RFMAnalysisRepository extends JpaRepository<RFMAnalysis, Integer> {
+public interface RFMAnalysisRepository extends JpaRepository<RFMAnalysis, String> {
 }
-

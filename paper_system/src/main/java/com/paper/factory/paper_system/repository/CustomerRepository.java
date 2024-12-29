@@ -5,5 +5,5 @@ import org.springframework.stereotype.Repository;
 import com.paper.factory.paper_system.model.Customer;
 
 @Repository
-public interface CustomerRepository extends JpaRepository<Customer, Integer> {
+public interface CustomerRepository extends JpaRepository<Customer, String> {
 }
