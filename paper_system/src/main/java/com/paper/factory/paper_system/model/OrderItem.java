@@ -2,6 +2,7 @@ package com.paper.factory.paper_system.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -17,15 +18,16 @@ public class OrderItem {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer orderItemId;
 
-    @ManyToOne
-    @JoinColumn(name = "Order_ID", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "order_id", nullable = false) // 確保名稱與資料庫一致
     private Order order;
-
+    
     @Column(nullable = false)
     private Integer productId;
 
     @Column(nullable = false)
     private Integer quantity;
+
 
     // Getters and Setters
     public Integer getOrderItemId() {
@@ -60,9 +62,5 @@ public class OrderItem {
         this.quantity = quantity;
     }
 
-    public Integer getPrice() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getPrice'");
-    }
 
 }

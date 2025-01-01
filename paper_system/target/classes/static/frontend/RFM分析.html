@@ -89,29 +89,31 @@
   <script>
     // 從資料庫取得 RFM 分析資料
     fetch('/api/rfm-analysis')
-      .then((response) => response.json())
-      .then((data) => {
-        const tableBody = document.getElementById('rfm-data-table').querySelector('tbody');
-        data.forEach((item) => {
-          const row = document.createElement('tr');
-          row.innerHTML = `
-            <td>${item.customerId}</td>
-            <td>${item.recency}</td>
-            <td>${item.frequency}</td>
-            <td>${item.monetaryValue.toFixed(2)}</td>
-            <td>${item.rfmValue.toFixed(2)}</td>
-            <td>${item.segment}</td>
-          `;
-          tableBody.appendChild(row);
-        });
-      })
-      .catch((error) => {
-        console.error('無法取得 RFM 分析資料:', error);
+  .then((response) => response.json())
+  .then((data) => {
+    const tableBody = document.getElementById('rfm-data-table').querySelector('tbody');
+    if (data.length === 0) {
+      const row = document.createElement('tr');
+      row.innerHTML = `<td colspan="6">目前無 RFM 分析數據</td>`;
+      tableBody.appendChild(row);
+    } else {
+      data.forEach((item) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${item.customerId}</td>
+          <td>${item.recency}</td>
+          <td>${item.frequency}</td>
+          <td>${item.monetaryValue.toFixed(2)}</td>
+          <td>${item.rfmValue.toFixed(2)}</td>
+          <td>${item.segment}</td>
+        `;
+        tableBody.appendChild(row);
       });
-
-    function goBack() {
-      window.location.href = '顧客管理1.html'; // 返回上一頁
     }
+  })
+  .catch((error) => {
+    console.error('無法取得 RFM 分析資料:', error);
+  });
   </script>
 </body>
 </html>

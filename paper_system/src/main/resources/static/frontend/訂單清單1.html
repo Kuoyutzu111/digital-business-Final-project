@@ -36,16 +36,9 @@
     tr:hover {
       background-color: #f9f9f9;
     }
-    button {
-      padding: 10px;
-      border: none;
-      border-radius: 5px;
-      background-color: #007bff;
-      color: white;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #0056b3;
+    select {
+      padding: 5px;
+      font-size: 14px;
     }
     .modal {
       display: none;
@@ -54,10 +47,10 @@
       left: 50%;
       transform: translate(-50%, -50%);
       background: white;
-      width: 400px;
       padding: 20px;
       border-radius: 10px;
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+      z-index: 1000;
     }
     .modal.active {
       display: block;
@@ -66,11 +59,33 @@
       font-size: 18px;
       margin-bottom: 10px;
     }
-    .modal table {
-      margin-bottom: 10px;
-    }
     .modal-footer {
       text-align: right;
+    }
+    input[type="number"] {
+      width: 60px;
+      text-align: center;
+    }
+    button {
+      padding: 5px 10px;
+      margin: 5px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .btn-primary {
+      background-color: #007bff;
+      color: white;
+    }
+    .btn-primary:hover {
+      background-color: #0056b3;
+    }
+    .btn-secondary {
+      background-color: #6c757d;
+      color: white;
+    }
+    .btn-secondary:hover {
+      background-color: #5a6268;
     }
   </style>
 </head>
@@ -84,6 +99,7 @@
           <th>公司名稱</th>
           <th>交貨日期</th>
           <th>狀態</th>
+          <th>操作</th>
         </tr>
       </thead>
       <tbody>
@@ -92,96 +108,126 @@
     </table>
   </div>
 
-  <!-- 彈窗結構 -->
+  <!-- 訂單詳細信息彈窗 -->
   <div id="order-modal" class="modal">
     <div class="modal-header">訂單詳情</div>
-    <div class="modal-body">
-      <p id="order-date"></p>
-      <p id="delivery-date"></p>
-      <table id="order-items">
-        <thead>
-          <tr>
-            <th>產品名稱</th>
-            <th>數量</th>
-            <th>操作</th>
-          </tr>
-        </thead>
-        <tbody>
-          <!-- 動態生成 -->
-        </tbody>
-      </table>
+    <div id="modal-body">
+      <!-- 動態生成 -->
     </div>
     <div class="modal-footer">
-      <button id="close-modal">關閉</button>
+      <button id="close-modal" class="btn-secondary">關閉</button>
     </div>
   </div>
 
   <script>
-    // 加載訂單資料
-    fetch('htp://localhost:8080/api/orders')
-      .then(response => response.json())
-      .then(data => {
-        const tableBody = document.getElementById('order-table').querySelector('tbody');
-        data.forEach(order => {
-          const row = document.createElement('tr');
-          row.innerHTML = `
-            <td>${order.orderDate}</td>
-            <td>${order.customerName}</td>
-            <td>${order.deliveryDate}</td>
-            <td>${order.status}</td>
-          `;
-          row.addEventListener('click', () => openOrderDetails(order.orderId));
-          tableBody.appendChild(row);
-        });
-      })
-      .catch(error => console.error('加載訂單失敗', error));
+    const API_BASE_URL = 'http://localhost:8080/api/orders'; // 統一管理 API URL
+    const orderStatuses = ["未完成", "備料中", "生產中", "包裝中", "運輸中", "已出貨", "已送達", "訂單取消"];
+    const modal = document.getElementById('order-modal');
+    const modalBody = document.getElementById('modal-body');
+    const closeModalButton = document.getElementById('close-modal');
 
-    // 打開詳情彈窗
-    function openOrderDetails(orderId) {
-      fetch(`/orders/${orderId}/details`)
+    // 加載訂單資料
+    function fetchOrders() {
+      fetch(API_BASE_URL)
         .then(response => response.json())
         .then(data => {
-          const modal = document.getElementById('order-modal');
-          modal.classList.add('active');
-
-          document.getElementById('order-date').innerText = `訂單日期: ${data.orderDate}`;
-          document.getElementById('delivery-date').innerText = `交貨日期: ${data.deliveryDate}`;
-
-          const tableBody = document.getElementById('order-items').querySelector('tbody');
-          tableBody.innerHTML = ''; // 清空現有內容
-          data.items.forEach(item => {
+          const tableBody = document.getElementById('order-table').querySelector('tbody');
+          tableBody.innerHTML = '';
+          data.forEach(order => {
             const row = document.createElement('tr');
             row.innerHTML = `
-              <td>${item.productName}</td>
-              <td><input type="number" value="${item.quantity}" /></td>
-              <td><button onclick="updateQuantity(${orderId}, ${item.productId})">更新</button></td>
+              <td>${order.orderDate}</td>
+              <td>${order.customerName}</td>
+              <td>${order.deliveryDate}</td>
+              <td>
+                <span id="current-status-${order.orderId}">${order.status}</span>
+                <select onchange="updateOrderStatus(${order.orderId}, this.value)">
+                  ${orderStatuses.map(
+                    status => `<option value="${status}" ${
+                      status === order.status ? "selected" : ""
+                    }>${status}</option>`
+                  ).join("")}
+                </select>
+              </td>
+              <td><button class="btn-primary" onclick="fetchOrderDetails(${order.orderId})">查看</button></td>
             `;
             tableBody.appendChild(row);
           });
         })
-        .catch(error => console.error('加載訂單詳情失敗', error));
+        .catch(error => console.error('加載訂單失敗', error));
     }
 
-    // 關閉彈窗
-    document.getElementById('close-modal').addEventListener('click', () => {
-      const modal = document.getElementById('order-modal');
-      modal.classList.remove('active');
-    });
-
-    // 更新數量
-    function updateQuantity(orderId, productId) {
-      const input = document.querySelector(`#order-items [value="${productId}"]`).value;
-      fetch(`/orders/${orderId}/items/${productId}/update`, {
+    // 更新訂單狀態
+    function updateOrderStatus(orderId, newStatus) {
+      fetch(`${API_BASE_URL}/${orderId}/status`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ quantity: parseInt(input, 10) })
+        body: JSON.stringify({ status: newStatus })
       })
         .then(response => {
           if (!response.ok) throw new Error('更新失敗');
-          alert('更新成功');
+          document.getElementById(`current-status-${orderId}`).innerText = newStatus; // 更新當前狀態顯示
+          alert('訂單狀態更新成功');
         })
-        .catch(error => console.error('更新失敗', error));
+        .catch(error => alert('更新失敗'));
     }
+
+    // 加載訂單詳情
+    function fetchOrderDetails(orderId) {
+      fetch(`${API_BASE_URL}/${orderId}/details`)
+        .then(response => response.json())
+        .then(order => {
+          modalBody.innerHTML = `
+            <p>訂單日期: ${order.orderDate}</p>
+            <p>交貨日期: ${order.deliveryDate}</p>
+            <table>
+              <thead>
+                <tr>
+                  <th>產品名稱</th>
+                  <th>數量</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${order.items.map(item => `
+                  <tr>
+                    <td>${item.productName}</td>
+                    <td>
+                      <input type="number" value="${item.quantity}" id="quantity-${item.productId}" ${order.modifiable ? '' : 'disabled'} />
+                    </td>
+                    <td>
+                      ${order.modifiable ? `<button class="btn-primary" onclick="updateOrderItem(${order.orderId}, ${item.productId})">更新</button>` : ''}
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          `;
+          modal.classList.add('active');
+        })
+        .catch(error => console.error('加載訂單詳情失敗', error));
+    }
+
+    // 更新訂單項目數量
+    function updateOrderItem(orderId, productId) {
+      const quantity = document.getElementById(`quantity-${productId}`).value;
+      fetch(`${API_BASE_URL}/${orderId}/items/${productId}/update`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ quantity: parseInt(quantity, 10) })
+      })
+        .then(response => {
+          if (!response.ok) throw new Error('更新失敗');
+          alert('數量更新成功');
+        })
+        .catch(error => alert('更新失敗'));
+    }
+
+    // 關閉彈窗
+    closeModalButton.addEventListener('click', () => modal.classList.remove('active'));
+
+    // 初始加載
+    fetchOrders();
   </script>
 </body>
 </html>

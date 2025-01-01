@@ -14,12 +14,15 @@ import org.springframework.stereotype.Service;
 
 import com.paper.factory.paper_system.model.BOM;
 import com.paper.factory.paper_system.model.Customer;
+import com.paper.factory.paper_system.model.Material;
 import com.paper.factory.paper_system.model.Order;
 import com.paper.factory.paper_system.model.OrderItem;
 import com.paper.factory.paper_system.model.OrderMaterialRequirement;
 import com.paper.factory.paper_system.model.Product;
 import com.paper.factory.paper_system.repository.BOMRepository;
 import com.paper.factory.paper_system.repository.CustomerRepository;
+import com.paper.factory.paper_system.repository.EmployeeRepository;
+import com.paper.factory.paper_system.repository.MaterialRepository;
 import com.paper.factory.paper_system.repository.OrderItemRepository;
 import com.paper.factory.paper_system.repository.OrderMaterialRequirementRepository;
 import com.paper.factory.paper_system.repository.OrderRepository;
@@ -48,82 +51,102 @@ public class OrderService {
     @Autowired
     private ProductRepository productRepository;
 
-    @Transactional
-    public Order createOrder(Map<String, Object> orderData, String employeeId) {
-        // 创建订单
-        Order order = new Order();
-        order.setOrderDate(java.sql.Date.valueOf((String) orderData.get("orderDate")));
-        order.setDeliveryDate(java.sql.Date.valueOf((String) orderData.get("deliveryDate")));
-        order.setStatus("未開始");
-        order.setCustomerId((String) orderData.get("customerId"));
-        order.setEmployeeId(employeeId);
+    @Autowired
+    private EmployeeRepository employeeRepository;
 
-        // 保存订单
-        Order savedOrder = orderRepository.save(order);
-        if (savedOrder.getOrderId() == null) {
-            throw new IllegalStateException("Order 保存失败，未生成主键 ID");
-        }
-        System.out.println("保存的 Order: " + savedOrder);
+    @Autowired
+    private MaterialRepository materialRepository;
 
-        // 处理订单项
-        List<Map<String, Object>> products = (List<Map<String, Object>>) orderData.get("products");
-        List<OrderItem> orderItems = new ArrayList<>();
-        for (Map<String, Object> productData : products) {
-            OrderItem orderItem = new OrderItem();
-            orderItem.setOrder(savedOrder); // 设置正确的 Order
-            orderItem.setProductId(Integer.parseInt((String) productData.get("productId")));
-            orderItem.setQuantity(Integer.parseInt((String) productData.get("quantity")));
-            orderItems.add(orderItem);
-        }
-        orderItemRepository.saveAll(orderItems);
-
-        // 调用方法计算并保存原材料需求
-        calculateAndSaveMaterialRequirements(savedOrder, orderItems);
-
-        return savedOrder;
+    public void updateOrderStatus(Integer orderId, String newStatus) {
+        Order order = orderRepository.findById(orderId)
+            .orElseThrow(() -> new RuntimeException("Order not found"));
+        order.setStatus(newStatus);
+        orderRepository.save(order);
     }
+    
+    @Transactional
+public Order createOrder(Map<String, Object> orderData, String employeeId) {
+    // 保持原有的訂單創建邏輯
+    Order order = new Order();
+    order.setOrderDate(java.sql.Date.valueOf((String) orderData.get("orderDate")));
+    order.setDeliveryDate(java.sql.Date.valueOf((String) orderData.get("deliveryDate")));
+    order.setStatus("未開始");
+    order.setCustomerId((String) orderData.get("customerId"));
+    order.setEmployeeId(employeeId);
+
+    Order savedOrder = orderRepository.save(order);
+    List<Map<String, Object>> products = (List<Map<String, Object>>) orderData.get("products");
+    List<OrderItem> orderItems = new ArrayList<>();
+    for (Map<String, Object> productData : products) {
+        OrderItem orderItem = new OrderItem();
+        orderItem.setOrder(savedOrder);
+        orderItem.setProductId(Integer.parseInt((String) productData.get("productId")));
+        orderItem.setQuantity(Integer.parseInt((String) productData.get("quantity")));
+        orderItems.add(orderItem);
+    }
+    orderItemRepository.saveAll(orderItems);
+
+    // 計算原材料需求並扣減庫存
+    calculateAndSaveMaterialRequirements(savedOrder, orderItems);
+    updateMaterialStock(savedOrder);
+
+    return savedOrder;
+}
+
+// 更新原材料庫存
+private void updateMaterialStock(Order order) {
+    List<OrderMaterialRequirement> requirements = orderMaterialRequirementRepository.findByOrderOrderId(order.getOrderId());
+    for (OrderMaterialRequirement requirement : requirements) {
+        Material material = requirement.getMaterialId();
+        int newStock = material.getStockQuantity() - requirement.getTotalRequiredQuantity().intValue();
+        material.setStockQuantity(newStock);
+        materialRepository.save(material);
+    }
+}
+
 
     private void calculateAndSaveMaterialRequirements(Order order, List<OrderItem> orderItems) {
-        if (order.getOrderId() == null) {
-            throw new IllegalArgumentException("Order 尚未保存，无法计算原材料需求！");
-        }
+    if (order.getOrderId() == null) {
+        throw new IllegalArgumentException("Order 尚未保存，无法计算原材料需求！");
+    }
 
-        List<OrderMaterialRequirement> materialRequirements = new ArrayList<>();
-        for (OrderItem item : orderItems) {
-            Integer productId = item.getProductId();
-            Integer quantity = item.getQuantity();
+    List<OrderMaterialRequirement> materialRequirements = new ArrayList<>();
+    for (OrderItem item : orderItems) {
+        Integer productId = item.getProductId();
+        Integer quantity = item.getQuantity();
 
-            // 获取 BOM 列表
-            List<BOM> boms = bomRepository.findByProductProductId(productId);
+        // 获取 BOM 列表
+        List<BOM> boms = bomRepository.findByProductProductId(productId);
 
-            for (BOM bom : boms) {
-                Integer materialId = bom.getMaterial().getMaterialId();
-                Double requiredQuantity = bom.getRequiredQuantity();
-                Double totalRequiredQuantity = requiredQuantity * quantity;
+        for (BOM bom : boms) {
+            Material material = bom.getMaterial(); // 確保這是 Material 實體
+            Double requiredQuantity = bom.getRequiredQuantity();
+            Double totalRequiredQuantity = requiredQuantity * quantity;
 
-                // 检查是否已经存在
-                Optional<OrderMaterialRequirement> existingRequirement = orderMaterialRequirementRepository
-                        .findByOrderOrderIdAndMaterialId(order.getOrderId(), materialId);
+            // 检查是否已经存在
+            Optional<OrderMaterialRequirement> existingRequirement = orderMaterialRequirementRepository
+                    .findByOrderOrderIdAndMaterialId(order.getOrderId(), material.getMaterialId());
 
-                if (existingRequirement.isPresent()) {
-                    OrderMaterialRequirement requirement = existingRequirement.get();
-                    requirement
-                            .setTotalRequiredQuantity(requirement.getTotalRequiredQuantity() + totalRequiredQuantity);
-                    orderMaterialRequirementRepository.save(requirement);
-                } else {
-                    OrderMaterialRequirement requirement = new OrderMaterialRequirement();
-                    requirement.setOrder(order); // 確保此處傳入的是持久化的 Order
-                    requirement.setMaterialId(materialId);
-                    requirement.setTotalRequiredQuantity(totalRequiredQuantity);
-                    materialRequirements.add(requirement);
-                }
+            if (existingRequirement.isPresent()) {
+                OrderMaterialRequirement requirement = existingRequirement.get();
+                requirement.setTotalRequiredQuantity(
+                    requirement.getTotalRequiredQuantity() + totalRequiredQuantity
+                );
+                orderMaterialRequirementRepository.save(requirement);
+            } else {
+                OrderMaterialRequirement requirement = new OrderMaterialRequirement();
+                requirement.setOrder(order); // 傳入持久化的 Order
+                requirement.setMaterialId(material); // 傳入 Material 實體
+                requirement.setTotalRequiredQuantity(totalRequiredQuantity);
+                materialRequirements.add(requirement);
             }
         }
-
-        // 保存所有计算的需求
-        orderMaterialRequirementRepository.saveAll(materialRequirements);
-        System.out.println("保存的 OrderMaterialRequirements: " + materialRequirements);
     }
+
+    // 保存新創建的 MaterialRequirement
+    orderMaterialRequirementRepository.saveAll(materialRequirements);
+}
+
 
     public List<Map<String, Object>> analyzeCustomers() {
         List<Customer> customers = customerRepository.findAll();

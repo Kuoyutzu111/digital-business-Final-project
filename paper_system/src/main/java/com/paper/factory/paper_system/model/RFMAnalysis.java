@@ -2,11 +2,8 @@ package com.paper.factory.paper_system.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.MapsId;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
@@ -33,9 +30,9 @@ public class RFMAnalysis {
     private String segment; // 新增字段
 
     @OneToOne
-    @MapsId
-    @JoinColumn(name = "Customer_ID")
+    @JoinColumn(name = "Customer_ID", referencedColumnName = "Customer_ID")
     private Customer customer;
+
 
     // Getters and Setters
     public String getCustomerId() {

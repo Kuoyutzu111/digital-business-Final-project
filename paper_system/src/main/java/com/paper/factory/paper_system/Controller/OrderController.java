@@ -46,6 +46,13 @@ public class OrderController {
     @Autowired
     private ProductRepository productRepository;
 
+    @PutMapping("/{orderId}/status")
+public ResponseEntity<Void> updateOrderStatus(@PathVariable Integer orderId, @RequestBody Map<String, String> request) {
+    String newStatus = request.get("status");
+    orderService.updateOrderStatus(orderId, newStatus);
+    return ResponseEntity.ok().build();
+}
+
     // 新增訂單 API
     @PostMapping("/create")
     public Order createOrder(@RequestBody Map<String, Object> orderData) {
@@ -77,41 +84,44 @@ public class OrderController {
     }
 
     @GetMapping("/{orderId}/details")
-    @ResponseBody
-    public Map<String, Object> getOrderDetails(@PathVariable Integer orderId) {
-        // 獲取訂單
-        Order order = orderRepository.findById(orderId).orElse(null);
-        if (order == null) {
-            throw new IllegalArgumentException("訂單不存在，ID: " + orderId);
-        }
-
-        // 獲取訂單項目
-        List<OrderItem> orderItems = orderItemRepository.findByOrderOrderId(orderId);
-
-        // 格式化結果
-        List<Map<String, Object>> items = orderItems.stream().map(item -> {
-            Map<String, Object> itemMap = new HashMap<>();
-            itemMap.put("productId", item.getProductId());
-            String productName = productRepository.findById(item.getProductId())
-                    .map(product -> product.getName()) // 如果找到產品，返回名稱
-                    .orElse("未知產品"); // 如果未找到，返回 "未知產品"
-
-            itemMap.put("productName", productName);
-            itemMap.put("quantity", item.getQuantity());
-            return itemMap;
-        }).collect(Collectors.toList());
-
-        // 返回詳情
-        Map<String, Object> response = new HashMap<>();
-        response.put("orderId", order.getOrderId());
-        response.put("orderDate", order.getOrderDate());
-        response.put("deliveryDate", order.getDeliveryDate());
-        response.put("status", order.getStatus());
-        response.put("items", items);
-        response.put("modifiable", "未開始".equals(order.getStatus())); // 狀態是否允許修改
-
-        return response;
+@ResponseBody
+public ResponseEntity<Map<String, Object>> getOrderDetails(@PathVariable Integer orderId) {
+    // 獲取訂單
+    Order order = orderRepository.findById(orderId).orElse(null);
+    if (order == null) {
+        return ResponseEntity.badRequest().body(Map.of("error", "訂單不存在，ID: " + orderId));
     }
+
+    // 獲取訂單項目
+    List<OrderItem> orderItems = orderItemRepository.findByOrderOrderId(orderId);
+    if (orderItems == null || orderItems.isEmpty()) {
+        return ResponseEntity.badRequest().body(Map.of("error", "訂單項目不存在"));
+    }
+
+    // 格式化結果
+    List<Map<String, Object>> items = orderItems.stream().map(item -> {
+        Map<String, Object> itemMap = new HashMap<>();
+        itemMap.put("productId", item.getProductId());
+        String productName = productRepository.findById(item.getProductId())
+                .map(product -> product.getName())
+                .orElse("未知產品");
+        itemMap.put("productName", productName);
+        itemMap.put("quantity", item.getQuantity());
+        return itemMap;
+    }).collect(Collectors.toList());
+
+    // 返回詳情
+    Map<String, Object> response = new HashMap<>();
+    response.put("orderId", order.getOrderId());
+    response.put("orderDate", order.getOrderDate());
+    response.put("deliveryDate", order.getDeliveryDate());
+    response.put("status", order.getStatus());
+    response.put("items", items);
+    response.put("modifiable", "未開始".equals(order.getStatus())); // 狀態是否允許修改
+
+    return ResponseEntity.ok(response);
+}
+
 
     @PutMapping("/{orderId}/items/{productId}/update")
     public ResponseEntity<String> updateOrderItemQuantity(

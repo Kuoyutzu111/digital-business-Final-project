@@ -86,7 +86,7 @@
 
   <script>
     // 從資料庫取得顧客分析資料
-    fetch('https://localhost:8080/api/customer-analysis')
+    fetch('http://localhost:8080/api/customer-analysis')
       .then((response) => response.json())
       .then((data) => {
         const tableBody = document.getElementById('analysis-table').querySelector('tbody');

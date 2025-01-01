@@ -25,9 +25,9 @@ public class RFMController {
         return ResponseEntity.ok(rfmResults);
     }
 
-    @PostMapping
-    public ResponseEntity<String> calculateAndSaveRFM() {
+    @PostMapping("/calculate")
+    public ResponseEntity<String> calculateRFM() {
         rfmService.calculateAndSaveRFM();
-        return ResponseEntity.ok("RFM 分析計算完成並已保存");
+        return ResponseEntity.ok("RFM 分析已更新");
     }
 }

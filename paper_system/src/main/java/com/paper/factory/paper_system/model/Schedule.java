@@ -2,6 +2,8 @@ package com.paper.factory.paper_system.model;
 
 import java.util.Date;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -22,7 +24,8 @@ public class Schedule {
     private Integer scheduleId;
 
     @ManyToOne
-    @JoinColumn(name = "Order_ID", nullable = false)
+    @JoinColumn(name = "order_id", nullable = false)
+    @JsonIgnore
     private Order order;
 
     @Column(nullable = false, length = 50)

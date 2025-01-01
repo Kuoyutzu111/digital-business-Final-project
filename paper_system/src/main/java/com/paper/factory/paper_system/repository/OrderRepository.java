@@ -15,7 +15,8 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
     @Query("SELECT o FROM Order o WHERE o.customer.customerId = :customerId")
     List<Order> findByCustomerId(@Param("customerId") String customerId);
 
-    @Query("SELECT o FROM Order o WHERE o.customer.customerId = :customerId AND o.status = 'Completed'")
+ 
+    @Query("SELECT o FROM Order o WHERE o.customer.customerId = :customerId AND o.status = '已完成'")
     List<Order> findCompletedOrdersByCustomerId(@Param("customerId") String customerId);
 
     // 查找最近的訂單日期

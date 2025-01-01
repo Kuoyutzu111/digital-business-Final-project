@@ -18,7 +18,7 @@ public class Material {
     @Column(nullable = false, length = 50)
     private String name;
 
-    @Column(nullable = false)
+    @Column(name = "Stock_Quantity", nullable = false)
     private Integer stockQuantity;
 
     @Column(nullable = false)

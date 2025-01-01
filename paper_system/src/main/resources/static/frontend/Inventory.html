@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>存貨管理</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #ccc;
+            text-align: center;
+        }
+        th {
+            background-color: #f4f4f4;
+        }
+        tr.low-stock {
+            background-color: #ffdddd;
+        }
+        button {
+            margin-left: 10px;
+            padding: 5px 10px;
+            font-size: 14px;
+            color: white;
+            background-color: #28a745;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        input[type="number"] {
+            width: 80px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>存貨管理系統</h1>
+    <div id="content">
+        <table>
+            <thead>
+                <tr>
+                    <th>原材料名稱</th>
+                    <th>目前庫存量</th>
+                    <th>安全門檻</th>
+                </tr>
+            </thead>
+            <tbody id="inventory-table">
+                <!-- 動態生成內容 -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        // 獲取存貨數據並生成表格
+        function loadInventory() {
+            const tableBody = document.getElementById('inventory-table');
+
+            // 調用後端 API 獲取庫存數據
+            fetch('/materials/inventory')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('網絡錯誤：' + response.status);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    tableBody.innerHTML = ''; // 清空表格內容
+                    let lowStockMaterials = []; // 儲存低於門檻的原材料
+
+                    // 遍歷數據並生成表格行
+                    data.forEach(material => {
+                        const isLowStock = material.stockQuantity < material.reorderThreshold;
+                        if (isLowStock) {
+                            lowStockMaterials.push(material.name);
+                        }
+                        const row = `
+                            <tr class="${isLowStock ? 'low-stock' : ''}">
+                                <td>${material.name}</td>
+                                <td>
+                                    <input type="number" value="${material.stockQuantity}" 
+                                           id="stock-${material.materialId}" />
+                                    <button onclick="saveStock(${material.materialId})">
+                                        更新
+                                    </button>
+                                </td>
+                                <td>${material.reorderThreshold}</td>
+                            </tr>
+                        `;
+                        tableBody.innerHTML += row;
+                    });
+
+                    // 如果有低於門檻的原材料，顯示警告彈窗
+                    if (lowStockMaterials.length > 0) {
+                        alert(`以下原材料需要補貨：\n\n${lowStockMaterials.join('\n')}`);
+                    }
+                })
+                .catch(error => {
+                    console.error('獲取庫存數據時出錯：', error);
+                    alert('獲取庫存數據失敗，請稍後再試。');
+                });
+        }
+
+        // 保存修改的庫存量
+        function saveStock(materialId) {
+            const stockInput = document.getElementById(`stock-${materialId}`);
+            const updatedStock = parseInt(stockInput.value);
+
+            if (isNaN(updatedStock) || updatedStock < 0) {
+                alert('請輸入有效的庫存數量！');
+                return;
+            }
+
+            // 調用後端 API 保存庫存數據
+            fetch(`/materials/${materialId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ stockQuantity: updatedStock }),
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('保存失敗：' + response.status);
+                    }
+                    alert('庫存更新成功！');
+                    loadInventory(); // 重新加載表格
+                })
+                .catch(error => {
+                    console.error('保存庫存時出錯：', error);
+                    alert('保存失敗，請稍後再試。');
+                });
+        }
+
+        // 頁面加載時自動調用
+        document.addEventListener('DOMContentLoaded', loadInventory);
+    </script>
+</body>
+</html>
