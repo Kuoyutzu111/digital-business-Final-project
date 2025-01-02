@@ -1,7 +1,9 @@
 package com.paper.factory.paper_system.Controller;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -14,7 +16,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.paper.factory.paper_system.model.Material;
+import com.paper.factory.paper_system.model.OrderMaterialRequirement;
 import com.paper.factory.paper_system.repository.MaterialRepository;
+import com.paper.factory.paper_system.repository.OrderMaterialRequirementRepository;
 import com.paper.factory.paper_system.service.MaterialService;
 
 @RestController
@@ -27,6 +31,9 @@ public class MaterialController {
 
     @Autowired
     private MaterialRepository materialRepository;
+
+    @Autowired
+    private OrderMaterialRequirementRepository orderMaterialRequirementRepository;
 
     // 获取所有原料
     @GetMapping
@@ -61,6 +68,33 @@ public ResponseEntity<List<Material>> getInventory() {
 
         return ResponseEntity.ok(updatedMaterial);
     }
+
+    @GetMapping("/{materialId}/details")
+    public ResponseEntity<List<Map<String, Object>>> getMaterialDetails(@PathVariable Integer materialId) {
+        List<Map<String, Object>> details = materialService.getMaterialOrderDetails(materialId);
+        return ResponseEntity.ok(details);
+    }
+
+    @GetMapping("/{materialId}/orders")
+    public ResponseEntity<List<Map<String, Object>>> getOrdersByMaterialId(@PathVariable Integer materialId) {
+        List<OrderMaterialRequirement> requirements = orderMaterialRequirementRepository.findByMaterialId(materialId);
+
+        if (requirements.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        List<Map<String, Object>> orders = requirements.stream().map(req -> {
+            Map<String, Object> orderData = new HashMap<>();
+            orderData.put("orderId", req.getOrder().getOrderId());
+            orderData.put("orderDate", req.getOrder().getOrderDate());
+            orderData.put("requiredQuantity", req.getTotalRequiredQuantity());
+            return orderData;
+        }).collect(Collectors.toList());
+
+        return ResponseEntity.ok(orders);
+    }
+    
+
 }
 
     

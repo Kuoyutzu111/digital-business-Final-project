@@ -67,6 +67,7 @@
                     <th>原材料名稱</th>
                     <th>目前庫存量</th>
                     <th>安全門檻</th>
+                    <th>相關訂單詳情</th>
                 </tr>
             </thead>
             <tbody id="inventory-table">
@@ -122,12 +123,16 @@
                                     <button onclick="saveStock(${material.materialId})">更新</button>
                                 </td>
                                 <td>${material.reorderThreshold}</td>
+                                <td>
+                                 <button onclick="viewMaterialDetails(${material.materialId})">查看</button>
+                                </td>
                             </tr>
                         `;
                         tableBody.innerHTML += row;
                     });
 
                     if (lowStockMaterials.length > 0) {
+
                         alert(`以下原材料需要補貨：\n\n${lowStockMaterials.join('\n')}`);
                     }
                 })
@@ -135,6 +140,21 @@
                     console.error('獲取庫存數據時出錯：', error);
                 });
         }
+
+        function viewMaterialDetails(materialId) {
+    fetch(`/materials/${materialId}/orders`)
+        .then(response => response.json())
+        .then(data => {
+            const details = data.map(order => `
+                <p>訂單ID: ${order.orderId}, 日期: ${order.orderDate}, 需求數量: ${order.requiredQuantity}</p>
+            `).join('');
+            alert(`原材料訂單詳情:\n\n${details}`);
+        })
+        .catch(error => {
+            console.error('獲取原材料詳情失敗:', error);
+            alert('無法獲取原材料詳情，請稍後再試。');
+        });
+}
 
         // 保存修改的庫存量
         function saveStock(materialId) {

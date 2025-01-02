@@ -1,7 +1,10 @@
 package com.paper.factory.paper_system.service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -54,4 +57,16 @@ public class MaterialService {
     public Material saveMaterial(Material material) {
         return materialRepository.save(material);
     }
+
+    public List<Map<String, Object>> getMaterialOrderDetails(Integer materialId) {
+        return orderMaterialRequirementRepository.findByMaterialId(materialId).stream().map(requirement -> {
+            Map<String, Object> detail = new HashMap<>();
+            detail.put("orderId", requirement.getOrder().getOrderId());
+            detail.put("orderDate", requirement.getOrder().getOrderDate());
+            detail.put("requiredQuantity", requirement.getTotalRequiredQuantity());
+            return detail;
+        }).collect(Collectors.toList());
+    }
+    
+
 }

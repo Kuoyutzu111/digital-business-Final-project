@@ -28,6 +28,9 @@ public interface OrderMaterialRequirementRepository extends JpaRepository<OrderM
     void deleteByOrderId(@Param("orderId") Integer orderId);
 
      List<OrderMaterialRequirement> findByOrderOrderId(Integer orderId);
+     
+     @Query("SELECT omr FROM OrderMaterialRequirement omr WHERE omr.material.materialId = :materialId")
+    List<OrderMaterialRequirement> findByMaterialId(@Param("materialId") Integer materialId);
 }
 
 
