@@ -46,11 +46,15 @@ public class RFMService {
     
             // Calculate Recency
             LocalDate lastOrderDate = customerOrders.stream()
-                    .map(order -> ((java.sql.Date) order.getOrderDate()).toLocalDate()) // 正確轉換
-                    .max(LocalDate::compareTo)
-                    .orElse(LocalDate.now());
-            long recency = ChronoUnit.DAYS.between(lastOrderDate, LocalDate.now());
-    
+                .map(order -> ((java.sql.Date) order.getOrderDate()).toLocalDate())
+                .max(LocalDate::compareTo)
+                .orElse(LocalDate.now());
+        LocalDate today = LocalDate.now();
+
+        long recency = ChronoUnit.DAYS.between(lastOrderDate, today);
+        if (recency < 0) {
+            recency = 0; // 防止負值
+        }
             // Calculate Frequency
             long frequency = customerOrders.size();
     

@@ -177,46 +177,54 @@
     });
 
     // 提交表單
-    document.getElementById('order-form').addEventListener('submit', function (event) {
-      event.preventDefault();
+document.getElementById('order-form').addEventListener('submit', function (event) {
+  event.preventDefault();
 
-      const products = [];
-      for (let i = 1; i <= productCount; i++) {
-        const product = document.getElementById(`product${i}`).value;
-        const quantity = document.getElementById(`quantity${i}`).value;
-        if (product && quantity) {
-          products.push({ productId: product, quantity: quantity });
-        }
+  const products = [];
+  for (let i = 1; i <= productCount; i++) {
+    const product = document.getElementById(`product${i}`).value;
+    const quantity = document.getElementById(`quantity${i}`).value;
+    if (product && quantity) {
+      products.push({ productId: product, quantity: quantity });
+    }
+  }
+
+  const formData = {
+    orderDate: document.getElementById('order-date').value,
+    customerId: document.getElementById('customer-id').value,
+    customerName: document.getElementById('customer-name').value,
+    deliveryDate: document.getElementById('delivery-date').value,
+    products: products,
+  };
+
+  console.log('送出的資料:', formData);
+
+  // 發送 POST 請求
+  fetch('http://localhost:8080/api/orders/create', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(formData)
+  })
+    .then(response => {
+      if (!response.ok) {
+        return response.json().then(errorData => {
+          throw new Error(errorData.message || '訂單創建失敗');
+        });
       }
-
-      const formData = {
-        orderDate: document.getElementById('order-date').value,
-        customerId: document.getElementById('customer-id').value,
-        customerName: document.getElementById('customer-name').value,
-        deliveryDate: document.getElementById('delivery-date').value,
-        products: products,
-      };
-
-      console.log('送出的資料:', formData);
-
-      // 發送 POST 請求
-      fetch('http://localhost:8080/api/orders/create', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(formData)
-      })
-      .then(response => response.json())
-      .then(data => {
-        alert('訂單創建成功！訂單ID: ' + data.orderId);
-        console.log('回應資料:', data);
-      })
-      .catch(error => {
-        alert('訂單創建失敗，請稍後再試！');
-        console.error('錯誤:', error);
-      });
+      return response.json();
+    })
+    .then(data => {
+      alert('訂單創建成功！訂單ID: ' + data.orderId);
+      console.log('回應資料:', data);
+    })
+    .catch(error => {
+      alert('錯誤：' + error.message);
+      console.error('錯誤:', error);
     });
+});
+
 
     // 重置按鈕
     document.getElementById('reset-btn').addEventListener('click', function () {

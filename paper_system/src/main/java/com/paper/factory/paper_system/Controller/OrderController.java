@@ -55,12 +55,17 @@ public ResponseEntity<Void> updateOrderStatus(@PathVariable Integer orderId, @Re
 
     // 新增訂單 API
     @PostMapping("/create")
-    public Order createOrder(@RequestBody Map<String, Object> orderData) {
+public ResponseEntity<?> createOrder(@RequestBody Map<String, Object> orderData) {
+    try {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String employeeId = authentication.getName(); // 假设用户名是 Employee_ID
-
-        return orderService.createOrder(orderData, employeeId);
+        Order order = orderService.createOrder(orderData, employeeId);
+        return ResponseEntity.ok(order);
+    } catch (IllegalStateException e) {
+        return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
     }
+}
+
 
     // 獲取所有訂單，並查詢客戶名稱
     @GetMapping

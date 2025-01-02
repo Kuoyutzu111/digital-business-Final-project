@@ -114,6 +114,10 @@
   .catch((error) => {
     console.error('無法取得 RFM 分析資料:', error);
   });
+  function goBack() {
+  // 使用瀏覽器的歷史紀錄返回上一頁
+  window.history.back();
+}
   </script>
 </body>
 </html>

@@ -57,6 +57,9 @@ public class OrderService {
     @Autowired
     private MaterialRepository materialRepository;
 
+    @Autowired
+    private RFMService rfmService;  
+
     public void updateOrderStatus(Integer orderId, String newStatus) {
         Order order = orderRepository.findById(orderId)
             .orElseThrow(() -> new RuntimeException("Order not found"));
@@ -74,16 +77,35 @@ public Order createOrder(Map<String, Object> orderData, String employeeId) {
     order.setCustomerId((String) orderData.get("customerId"));
     order.setEmployeeId(employeeId);
 
-    Order savedOrder = orderRepository.save(order);
+   // Order savedOrder = orderRepository.save(order);
+    rfmService.calculateAndSaveRFM();
     List<Map<String, Object>> products = (List<Map<String, Object>>) orderData.get("products");
     List<OrderItem> orderItems = new ArrayList<>();
+    // 檢查原材料庫存
     for (Map<String, Object> productData : products) {
+        int productId = Integer.parseInt((String) productData.get("productId"));
+        int quantity = Integer.parseInt((String) productData.get("quantity"));
+
+        List<BOM> boms = bomRepository.findByProductProductId(productId);
+        for (BOM bom : boms) {
+            Material material = bom.getMaterial();
+            double requiredQuantity = bom.getRequiredQuantity() * quantity;
+
+            if (material.getStockQuantity() < requiredQuantity) {
+                throw new IllegalStateException("原料 " + material.getName() + " 庫存不足，無法創建訂單！");
+            }
+        }
+
+        // 添加到 OrderItem
         OrderItem orderItem = new OrderItem();
-        orderItem.setOrder(savedOrder);
-        orderItem.setProductId(Integer.parseInt((String) productData.get("productId")));
-        orderItem.setQuantity(Integer.parseInt((String) productData.get("quantity")));
+        orderItem.setOrder(order);
+        orderItem.setProductId(productId);
+        orderItem.setQuantity(quantity);
         orderItems.add(orderItem);
     }
+
+    // 保存訂單和訂單項目
+    Order savedOrder = orderRepository.save(order);
     orderItemRepository.saveAll(orderItems);
 
     // 計算原材料需求並扣減庫存

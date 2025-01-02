@@ -42,9 +42,19 @@
         button:hover {
             background-color: #218838;
         }
-        input[type="number"] {
-            width: 80px;
-            text-align: center;
+        input[type="number"], select {
+            margin-right: 10px;
+            padding: 5px;
+        }
+        .reorder-section, .notification-section {
+            margin-top: 30px;
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .notification {
+            margin-top: 10px;
         }
     </style>
 </head>
@@ -63,6 +73,28 @@
                 <!-- 動態生成內容 -->
             </tbody>
         </table>
+
+        <!-- 補貨區 -->
+        <div class="reorder-section">
+            <h2>補貨區</h2>
+            <select id="product-select">
+                <option value="" disabled selected>選擇原料</option>
+                <option value="1">木漿</option>
+                <option value="2">水</option>
+                <option value="3">柔軟劑</option>
+                <option value="4">吸水劑</option>
+            </select>
+            <input type="number" id="reorder-quantity" placeholder="輸入補貨數量">
+            <button onclick="sendReorderRequest()">發出補貨通知</button>
+        </div>
+
+        <!-- 通知區 -->
+        <div class="notification-section">
+            <h2>通知區</h2>
+            <div id="notifications">
+                <!-- 動態通知將插入此處 -->
+            </div>
+        </div>
     </div>
 
     <script>
@@ -72,17 +104,11 @@
 
             // 調用後端 API 獲取庫存數據
             fetch('/materials/inventory')
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('網絡錯誤：' + response.status);
-                    }
-                    return response.json();
-                })
+                .then(response => response.json())
                 .then(data => {
-                    tableBody.innerHTML = ''; // 清空表格內容
-                    let lowStockMaterials = []; // 儲存低於門檻的原材料
+                    tableBody.innerHTML = '';
+                    let lowStockMaterials = [];
 
-                    // 遍歷數據並生成表格行
                     data.forEach(material => {
                         const isLowStock = material.stockQuantity < material.reorderThreshold;
                         if (isLowStock) {
@@ -92,11 +118,8 @@
                             <tr class="${isLowStock ? 'low-stock' : ''}">
                                 <td>${material.name}</td>
                                 <td>
-                                    <input type="number" value="${material.stockQuantity}" 
-                                           id="stock-${material.materialId}" />
-                                    <button onclick="saveStock(${material.materialId})">
-                                        更新
-                                    </button>
+                                    <input type="number" value="${material.stockQuantity}" id="stock-${material.materialId}">
+                                    <button onclick="saveStock(${material.materialId})">更新</button>
                                 </td>
                                 <td>${material.reorderThreshold}</td>
                             </tr>
@@ -104,14 +127,12 @@
                         tableBody.innerHTML += row;
                     });
 
-                    // 如果有低於門檻的原材料，顯示警告彈窗
                     if (lowStockMaterials.length > 0) {
                         alert(`以下原材料需要補貨：\n\n${lowStockMaterials.join('\n')}`);
                     }
                 })
                 .catch(error => {
                     console.error('獲取庫存數據時出錯：', error);
-                    alert('獲取庫存數據失敗，請稍後再試。');
                 });
         }
 
@@ -125,28 +146,60 @@
                 return;
             }
 
-            // 調用後端 API 保存庫存數據
             fetch(`/materials/${materialId}`, {
                 method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ stockQuantity: updatedStock }),
             })
                 .then(response => {
-                    if (!response.ok) {
-                        throw new Error('保存失敗：' + response.status);
-                    }
+                    if (!response.ok) throw new Error('保存失敗');
                     alert('庫存更新成功！');
-                    loadInventory(); // 重新加載表格
+                    loadInventory();
                 })
                 .catch(error => {
                     console.error('保存庫存時出錯：', error);
-                    alert('保存失敗，請稍後再試。');
+                    alert('保存失敗');
                 });
         }
 
-        // 頁面加載時自動調用
+        // 發出補貨通知
+        function sendReorderRequest() {
+            const productSelect = document.getElementById('product-select');
+            const quantityInput = document.getElementById('reorder-quantity');
+            const product = productSelect.options[productSelect.selectedIndex]?.text;
+            const quantity = parseInt(quantityInput.value);
+
+            if (!product || isNaN(quantity) || quantity <= 0) {
+                alert('請選擇產品並輸入有效的補貨數量！');
+                return;
+            }
+
+            // 模擬補貨通知
+            alert(`已向採購部門發出 ${product} 補貨通知，數量：${quantity}`);
+            addNotification(`採購部門通知：已向倉庫發出 ${product} 補貨 ${quantity}。`);
+            productSelect.value = '';
+            quantityInput.value = '';
+        }
+
+        // 添加通知
+        function addNotification(message) {
+            const notificationsDiv = document.getElementById('notifications');
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.innerHTML = `
+                <p>${message}</p>
+                <button onclick="markAsReplenished(this)">標示已補充</button>
+            `;
+            notificationsDiv.appendChild(notification);
+        }
+
+        // 標示已補充
+        function markAsReplenished(button) {
+            const notificationDiv = button.parentElement;
+            notificationDiv.remove();
+            alert('已標示為補充完成');
+        }
+
         document.addEventListener('DOMContentLoaded', loadInventory);
     </script>
 </body>
