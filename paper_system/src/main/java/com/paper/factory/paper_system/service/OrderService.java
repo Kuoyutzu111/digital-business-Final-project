@@ -1,8 +1,6 @@
 package com.paper.factory.paper_system.service;
 
-import java.sql.Date;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -19,6 +17,7 @@ import com.paper.factory.paper_system.model.Order;
 import com.paper.factory.paper_system.model.OrderItem;
 import com.paper.factory.paper_system.model.OrderMaterialRequirement;
 import com.paper.factory.paper_system.model.Product;
+import com.paper.factory.paper_system.model.Schedule;
 import com.paper.factory.paper_system.repository.BOMRepository;
 import com.paper.factory.paper_system.repository.CustomerRepository;
 import com.paper.factory.paper_system.repository.EmployeeRepository;
@@ -27,6 +26,7 @@ import com.paper.factory.paper_system.repository.OrderItemRepository;
 import com.paper.factory.paper_system.repository.OrderMaterialRequirementRepository;
 import com.paper.factory.paper_system.repository.OrderRepository;
 import com.paper.factory.paper_system.repository.ProductRepository;
+import com.paper.factory.paper_system.repository.ScheduleRepository;
 
 import jakarta.transaction.Transactional;
 
@@ -58,7 +58,14 @@ public class OrderService {
     private MaterialRepository materialRepository;
 
     @Autowired
-    private RFMService rfmService;  
+    private ScheduleRepository scheduleRepository;
+
+    @Autowired
+    private RFMService rfmService; 
+
+    @Autowired
+    private CustomerAnalysisService customerAnalysisService; 
+    
 
     public void updateOrderStatus(Integer orderId, String newStatus) {
         Order order = orderRepository.findById(orderId)
@@ -71,14 +78,14 @@ public class OrderService {
 public Order createOrder(Map<String, Object> orderData, String employeeId) {
     // 保持原有的訂單創建邏輯
     Order order = new Order();
-    order.setOrderDate(java.sql.Date.valueOf((String) orderData.get("orderDate")));
-    order.setDeliveryDate(java.sql.Date.valueOf((String) orderData.get("deliveryDate")));
+    order.setOrderDate(LocalDate.parse((String) orderData.get("orderDate")));
+    order.setDeliveryDate(LocalDate.parse((String) orderData.get("deliveryDate")));
     order.setStatus("未開始");
     order.setCustomerId((String) orderData.get("customerId"));
     order.setEmployeeId(employeeId);
 
    // Order savedOrder = orderRepository.save(order);
-    rfmService.calculateAndSaveRFM();
+   // rfmService.calculateAndSaveRFM();
     List<Map<String, Object>> products = (List<Map<String, Object>>) orderData.get("products");
     List<OrderItem> orderItems = new ArrayList<>();
     // 檢查原材料庫存
@@ -88,13 +95,16 @@ public Order createOrder(Map<String, Object> orderData, String employeeId) {
 
         List<BOM> boms = bomRepository.findByProductProductId(productId);
         for (BOM bom : boms) {
-            Material material = bom.getMaterial();
+            Material material = materialRepository.findById(bom.getMaterial().getMaterialId())
+                .orElseThrow(() -> new IllegalStateException("找不到原料: " + bom.getMaterial().getMaterialId()));
+        
             double requiredQuantity = bom.getRequiredQuantity() * quantity;
-
+        
             if (material.getStockQuantity() < requiredQuantity) {
                 throw new IllegalStateException("原料 " + material.getName() + " 庫存不足，無法創建訂單！");
             }
         }
+        
 
         // 添加到 OrderItem
         OrderItem orderItem = new OrderItem();
@@ -111,6 +121,27 @@ public Order createOrder(Map<String, Object> orderData, String employeeId) {
     // 計算原材料需求並扣減庫存
     calculateAndSaveMaterialRequirements(savedOrder, orderItems);
     updateMaterialStock(savedOrder);
+    rfmService.calculateAndSaveRFM();
+    customerAnalysisService.calculateCustomerAnalysis();
+
+
+    // 確保交貨日期存在
+    if (savedOrder.getDeliveryDate() == null) {
+        throw new IllegalArgumentException("交貨日期不能為空！");
+    }
+
+    // 根據交貨日期生成排程
+    LocalDate deliveryDate = savedOrder.getDeliveryDate();
+    LocalDate startDate = deliveryDate.minusDays(4);
+
+    List<Schedule> schedules = new ArrayList<>();
+    schedules.add(new Schedule(savedOrder, "備料中", startDate, startDate));
+    schedules.add(new Schedule(savedOrder, "生產中", startDate.plusDays(1), startDate.plusDays(2)));
+    schedules.add(new Schedule(savedOrder, "包裝中", startDate.plusDays(3), startDate.plusDays(3)));
+    schedules.add(new Schedule(savedOrder, "運輸中", startDate.plusDays(4), deliveryDate));
+
+
+    scheduleRepository.saveAll(schedules);
 
     return savedOrder;
 }
@@ -170,6 +201,7 @@ private void updateMaterialStock(Order order) {
 }
 
 
+
     public List<Map<String, Object>> analyzeCustomers() {
         List<Customer> customers = customerRepository.findAll();
         List<Map<String, Object>> analysisResults = new ArrayList<>();
@@ -220,11 +252,18 @@ private void updateMaterialStock(Order order) {
     }
 
     private double calculateActivityProbability(List<Order> orders) {
-        // 假設活動定義為最近 30 天內下過訂單
+        // 定義最近 30 天的日期
+        LocalDate thresholdDate = LocalDate.now().minusDays(30);
+    
+        // 計算最近 30 天內下過訂單的數量
         long activeOrders = orders.stream()
-                .filter(order -> order.getOrderDate().after(Date.from(Instant.now().minus(30, ChronoUnit.DAYS))))
+                .filter(order -> order.getOrderDate() != null && 
+                                 order.getOrderDate().isAfter(thresholdDate))
                 .count();
+    
+        // 計算活動機率
         return orders.isEmpty() ? 0 : (double) activeOrders / orders.size() * 100;
     }
+    
 
 }

@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,11 +45,13 @@ public class RFMService {
             String customerId = entry.getKey();
             List<Order> customerOrders = entry.getValue();
     
-            // Calculate Recency
-            LocalDate lastOrderDate = customerOrders.stream()
-                .map(order -> ((java.sql.Date) order.getOrderDate()).toLocalDate())
-                .max(LocalDate::compareTo)
-                .orElse(LocalDate.now());
+          // Calculate Recency
+        LocalDate lastOrderDate = customerOrders.stream()
+        .map(Order::getOrderDate) // 直接获取 LocalDate 类型
+        .filter(Objects::nonNull) // 排除空值
+        .max(LocalDate::compareTo) // 获取最近日期
+        .orElse(LocalDate.now());
+
         LocalDate today = LocalDate.now();
 
         long recency = ChronoUnit.DAYS.between(lastOrderDate, today);
@@ -86,6 +89,7 @@ public class RFMService {
             rfmAnalysisRepository.save(rfmAnalysis);
         }
     }
+
     private double calculateRFMValue(long recency, long frequency, double monetary) {
         return (1000 - recency) * 0.5 + frequency * 1.5 + monetary * 2.0;
     }

@@ -111,7 +111,7 @@
     }
 
     // 加載排程數據
-    function fetchSchedules(year, month) {
+function fetchSchedules(year, month) {
     fetch(`${API_BASE_URL}?year=${year}&month=${month}`)
         .then(response => {
             if (!response.ok) {
@@ -148,6 +148,7 @@
             alert('加載排程數據失敗，請檢查後端日誌！');
         });
 }
+
 
 
     // 切換到上個月

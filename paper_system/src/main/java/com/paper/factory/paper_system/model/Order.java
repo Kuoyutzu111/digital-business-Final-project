@@ -1,7 +1,6 @@
 package com.paper.factory.paper_system.model;
-
+import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import jakarta.persistence.CascadeType;
@@ -37,11 +36,11 @@ public class Order {
 
     @Column(nullable = false)
     @Temporal(TemporalType.DATE)
-    private Date orderDate;
+    private LocalDate orderDate;
 
     @Column(nullable = false)
     @Temporal(TemporalType.DATE)
-    private Date deliveryDate;
+    private LocalDate deliveryDate;
 
     @Column(nullable = false, length = 20)
     private String status;
@@ -86,19 +85,19 @@ public class Order {
         this.employeeId = employeeId;
     }
 
-    public Date getOrderDate() {
+    public LocalDate getOrderDate() {
         return orderDate;
     }
 
-    public void setOrderDate(Date orderDate) {
+    public void setOrderDate(LocalDate orderDate) {
         this.orderDate = orderDate;
     }
 
-    public Date getDeliveryDate() {
+    public LocalDate getDeliveryDate() {
         return deliveryDate;
     }
 
-    public void setDeliveryDate(Date deliveryDate) {
+    public void setDeliveryDate(LocalDate deliveryDate) {
         this.deliveryDate = deliveryDate;
     }
 

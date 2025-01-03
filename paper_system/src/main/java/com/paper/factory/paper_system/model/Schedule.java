@@ -1,6 +1,6 @@
 package com.paper.factory.paper_system.model;
 
-import java.util.Date;
+import java.time.LocalDate;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -33,10 +33,21 @@ public class Schedule {
 
     @Column(nullable = false)
     @Temporal(TemporalType.DATE)
-    private Date startDate;
+    private LocalDate startDate;
 
     @Temporal(TemporalType.DATE)
-    private Date endDate;
+    private LocalDate endDate;
+
+    // Default Constructor
+    public Schedule() {}
+
+    // Constructor with Parameters
+    public Schedule(Order order, String stage, LocalDate startDate, LocalDate endDate) {
+        this.order = order;
+        this.stage = stage;
+        this.startDate = startDate;
+        this.endDate = endDate;
+    }
 
     // Getters and Setters
     public Integer getScheduleId() {
@@ -63,19 +74,19 @@ public class Schedule {
         this.stage = stage;
     }
 
-    public Date getStartDate() {
+    public LocalDate getStartDate() {
         return startDate;
     }
 
-    public void setStartDate(Date startDate) {
+    public void setStartDate(LocalDate startDate) {
         this.startDate = startDate;
     }
 
-    public Date getEndDate() {
+    public LocalDate getEndDate() {
         return endDate;
     }
 
-    public void setEndDate(Date endDate) {
+    public void setEndDate(LocalDate endDate) {
         this.endDate = endDate;
     }
 }

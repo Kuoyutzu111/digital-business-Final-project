@@ -1,7 +1,10 @@
 package com.paper.factory.paper_system.service;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -65,10 +68,17 @@ public class CustomerAnalysisService {
     }
 
     private double calculateActivityProbability(List<Order> orders) {
-        long activeOrders = orders.stream()
-                .filter(order -> order.getOrderDate()
-                        .after(new Date(System.currentTimeMillis() - 30L * 24 * 60 * 60 * 1000)))
-                .count();
-        return orders.isEmpty() ? 0 : (double) activeOrders / orders.size() * 100;
-    }
+    // 計算30天前的基準日期
+    LocalDate thresholdDate = LocalDate.now().minusDays(30);
+
+    // 計算最近30天內的活躍訂單數量
+    long activeOrders = orders.stream()
+            .filter(order -> order.getOrderDate() != null &&
+                             order.getOrderDate().isAfter(thresholdDate))
+            .count();
+
+    // 計算活動機率
+    return orders.isEmpty() ? 0 : (double) activeOrders / orders.size() * 100;
+}
+
 }

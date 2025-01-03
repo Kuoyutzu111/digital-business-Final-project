@@ -24,11 +24,11 @@ public class ScheduleController {
     @Autowired
     private ScheduleService scheduleService;
 
+
     @GetMapping
 public List<Map<String, Object>> getSchedules(@RequestParam int year, @RequestParam int month) {
     return scheduleService.getSchedulesByMonth(year, month);
 }
-    
 
 
     @PostMapping
