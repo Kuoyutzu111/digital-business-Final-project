@@ -9,7 +9,7 @@ COPY paper_system/pom.xml /app/pom.xml
 COPY paper_system/src /app/src
 
 # 使用 Maven 构建项目
-RUN mvn clean package -DskipTests
+RUN rm -rf /app/target && mvn clean package -DskipTests
 
 # 使用轻量级 JDK 镜像运行应用程序
 FROM eclipse-temurin:17-jdk-jammy
