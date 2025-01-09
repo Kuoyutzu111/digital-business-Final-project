@@ -5,7 +5,9 @@ FROM maven:3.8.8-eclipse-temurin-17 AS build
 WORKDIR /app
 
 # 仅复制 pom.xml，安装依赖
-COPY pom.xml /app/pom.xml
+COPY project/pom.xml /app/pom.xml
+COPY project/src /app/src
+
 
 # 运行依赖预加载（可选）
 RUN mvn dependency:go-offline
