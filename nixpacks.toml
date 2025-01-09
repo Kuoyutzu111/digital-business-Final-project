@@ -1,3 +1,0 @@
-[phases]
-build = "mvn clean package -DskipTests"
-start = "java -jar target/paper_system-0.0.1-SNAPSHOT.jar"
