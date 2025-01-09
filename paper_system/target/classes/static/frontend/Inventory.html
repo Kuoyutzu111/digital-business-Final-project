@@ -67,6 +67,7 @@
                     <th>原材料名稱</th>
                     <th>目前庫存量</th>
                     <th>安全門檻</th>
+                    <th>建議補充數量</th>
                     <th>相關訂單詳情</th>
                 </tr>
             </thead>
@@ -115,6 +116,7 @@
                         if (isLowStock) {
                             lowStockMaterials.push(material.name);
                         }
+                        const suggestedReorder = material.suggestedReorderQuantity;
                         const row = `
                             <tr class="${isLowStock ? 'low-stock' : ''}">
                                 <td>${material.name}</td>
@@ -123,6 +125,9 @@
                                     <button onclick="saveStock(${material.materialId})">更新</button>
                                 </td>
                                 <td>${material.reorderThreshold}</td>
+                                <td>${suggestedReorder}</td>
+    
+                                 </td>
                                 <td>
                                  <button onclick="viewMaterialDetails(${material.materialId})">查看</button>
                                 </td>

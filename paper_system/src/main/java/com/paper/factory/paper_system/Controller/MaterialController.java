@@ -42,8 +42,8 @@ public class MaterialController {
     }
 
     @GetMapping("/inventory")
-public ResponseEntity<List<Material>> getInventory() {
-    List<Material> inventory = materialService.getAllMaterials();
+public ResponseEntity<List<Map<String, Object>>> getInventory() {
+    List<Map<String, Object>> inventory = materialService.getMaterialWithReorderData();
     return ResponseEntity.ok(inventory);
 }
 
@@ -65,7 +65,6 @@ public ResponseEntity<List<Material>> getInventory() {
         if (updatedMaterial == null) {
             return ResponseEntity.notFound().build();
         }
-
         return ResponseEntity.ok(updatedMaterial);
     }
 
